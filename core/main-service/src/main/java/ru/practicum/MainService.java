@@ -5,7 +5,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
-
 @SpringBootApplication(scanBasePackages = {"ru.practicum.client",
         "ru.practicum.category",
         "ru.practicum.event",
@@ -23,7 +22,6 @@ public class MainService {
     @Bean
     public Hibernate6Module hibernate6Module() {
         Hibernate6Module module = new Hibernate6Module();
-        // Настройки модуля (опционально)
         module.enable(Hibernate6Module.Feature.SERIALIZE_IDENTIFIER_FOR_LAZY_NOT_LOADED_OBJECTS);
         module.disable(Hibernate6Module.Feature.USE_TRANSIENT_ANNOTATION);
         return module;

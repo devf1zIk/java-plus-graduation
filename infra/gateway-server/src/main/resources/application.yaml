@@ -1,6 +1,6 @@
 spring:
   application:
-    name: stats-server
+    name: gateway-server
   config:
     import: "configserver:"
   cloud:
@@ -11,13 +11,14 @@ spring:
         max-interval: 6000
       discovery:
         enabled: true
-        serviceId: config-server
+        service-id: config-server
 
 eureka:
   client:
     serviceUrl:
-      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka/}
+      defaultZone: http://localhost:8761/eureka/
   instance:
     preferIpAddress: true
+    hostname: localhost
     instance-id: "${spring.application.name}:${random.value}"
     leaseRenewalIntervalInSeconds: 10
