@@ -10,9 +10,6 @@ spring:
         service-id: config-server
       fail-fast: true
 
-server:
-  port: 0
-
 eureka:
   client:
     serviceUrl:

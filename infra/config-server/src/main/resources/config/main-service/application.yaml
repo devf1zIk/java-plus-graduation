@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 0
 spring:
   sql:
     init:
@@ -20,4 +20,4 @@ spring:
     driverClassName: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/main-db
     username: postgres
-    password: karakesek
+    password: password
