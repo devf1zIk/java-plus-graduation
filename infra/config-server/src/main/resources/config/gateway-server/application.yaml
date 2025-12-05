@@ -7,12 +7,8 @@ spring:
           uri: lb://main-service
           predicates:
             - Path=/**
-        - id: stats_server_route
-          uri: lb://stats-server
-          predicates:
-            - Path=/**
 server:
-  port: 8081
+  port: 8080
 
 logging:
   level:
