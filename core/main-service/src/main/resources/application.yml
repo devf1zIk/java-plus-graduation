@@ -1,15 +1,17 @@
 spring:
+  profiles:
+    active: dev
   application:
     name: main-service
   config:
     import: "configserver:"
   cloud:
     config:
+      override-none: true
       discovery:
         enabled: true
         service-id: config-server
       fail-fast: true
-
 eureka:
   client:
     serviceUrl:

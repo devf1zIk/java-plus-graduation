@@ -19,6 +19,7 @@ public interface CommentMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "event", source = "event")
+    @Mapping(target = "author", ignore = true)
     @Mapping(target = "createdAt", source = "commentRequest.createdAt")
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateComment(MergeCommentRequest commentRequest, Event event, @MappingTarget Comment comment);
