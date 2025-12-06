@@ -11,7 +11,7 @@ spring:
       server:
         native:
           searchLocations:
-            - classpath:config/main-service
+            - classpath:config/core
             - classpath:config/stats-service
             - classpath:config/infra
       fail-fast: true
