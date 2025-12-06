@@ -11,10 +11,9 @@ spring:
       server:
         native:
           search-locations:
-            - classpath:config/core/{application}
-            - classpath:config/stats-service/{application}
-            - classpath:config/infra/{application}
-        bootstrap: true
+            - classpath:config/main-service/
+            - classpath:config/stats-service/
+            - classpath:config/gateway-server/
       fail-fast: true
       retry:
         use-random-policy: true
