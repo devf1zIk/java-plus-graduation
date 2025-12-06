@@ -12,7 +12,7 @@ spring:
         native:
           searchLocations:
             - classpath:config/main-service/{application}
-            - classpath:config/stats-service/{application}
+            - classpath:config/stats-server/{application}
             - classpath:config/gateway-server/{application}
       fail-fast: true
       retry:
