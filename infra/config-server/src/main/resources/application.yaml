@@ -10,10 +10,10 @@ spring:
     config:
       server:
         native:
-          searchLocations:
-            - classpath:config/core
-            - classpath:config/stats-service
-            - classpath:config/infra
+          search-locations:
+            - classpath:config/main-service
+            - classpath:config/stats-server
+            - classpath:config/gateway-server
       fail-fast: true
       retry:
         use-random-policy: true
