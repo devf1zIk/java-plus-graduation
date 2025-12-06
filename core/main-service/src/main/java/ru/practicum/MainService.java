@@ -3,8 +3,10 @@ package ru.practicum;
 import com.fasterxml.jackson.datatype.hibernate6.Hibernate6Module;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.annotation.Bean;
 
+@EnableDiscoveryClient
 @SpringBootApplication(scanBasePackages = {"ru.practicum.client",
         "ru.practicum.category",
         "ru.practicum.event",

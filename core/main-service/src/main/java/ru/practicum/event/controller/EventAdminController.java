@@ -40,7 +40,7 @@ public class EventAdminController {
                                  @PositiveOrZero @RequestParam(value = "from", defaultValue = "0") int from,
                                  @Positive @RequestParam(value = "size", defaultValue = "10") int size,
                                  HttpServletRequest request) {
-        statClient.create(new HitDto(request.getRemoteAddr(), "ru.practicum", "/events", LocalDateTime.now()));
+        statClient.create(new HitDto(request.getRemoteAddr(), "ewn-main", "/events", LocalDateTime.now()));
 
         return eventService.getAll(users, states, categories, rangeStart, rangeEnd, PageRequest.of(from, size));
     }

@@ -44,7 +44,7 @@ public class EventPrivateController {
                                              @Positive @RequestParam(value = "size", defaultValue = "10") int size,
                                              HttpServletRequest request) {
         Pageable paging = PageRequest.of(from, size);
-        statClient.create(new HitDto(request.getRemoteAddr(), "ru.practicum", "/events", LocalDateTime.now()));
+        statClient.create(new HitDto(request.getRemoteAddr(), "ewm-main", "/events", LocalDateTime.now()));
 
         return eventService.getByUserId(userId, paging);
     }
