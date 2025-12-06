@@ -14,6 +14,7 @@ spring:
             - classpath:config/core/{application}
             - classpath:config/stats-service/{application}
             - classpath:config/infra/{application}
+        bootstrap: true
       fail-fast: true
       retry:
         use-random-policy: true
