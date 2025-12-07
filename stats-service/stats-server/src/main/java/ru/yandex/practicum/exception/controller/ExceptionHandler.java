@@ -9,7 +9,7 @@ import ru.yandex.practicum.exception.model.ErrorResponse;
 
 import java.util.Arrays;
 
-@RestControllerAdvice(basePackages = {"ru.practicum.ewm.stats.controller"})
+@RestControllerAdvice(basePackages = {"ru.yandex.practicum.stats.controller"})
 @Slf4j
 public class ExceptionHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
