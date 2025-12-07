@@ -1,0 +1,7 @@
+stats:
+  server:
+    url: http://stats-server:9090
+spring:
+  mvc:
+    format:
+      date-time: yyyy-MM-dd HH:mm:ss

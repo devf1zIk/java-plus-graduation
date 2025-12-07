@@ -13,6 +13,8 @@ services:
       timeout: 5s
       interval: 5s
       retries: 10
+    volumes:
+      - ./stats/stats-server/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
   ewm-db:
     image: postgres:16.1
     container_name: ewm-db
@@ -27,3 +29,5 @@ services:
       timeout: 5s
       interval: 5s
       retries: 10
+    volumes:
+      - ./core/main-service/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
