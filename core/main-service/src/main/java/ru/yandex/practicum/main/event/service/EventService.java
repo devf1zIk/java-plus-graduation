@@ -251,46 +251,45 @@ public class EventService {
     }
 
     public List<EventShortDto> getAllShort(String text, List<Long> categories, Boolean paid,
-                                           LocalDateTime rangeStart, LocalDateTime rangeEnd, boolean onlyAvailable,
-                                           String sort, int from, int size) {
-        Page<Event> events;
-        Pageable paging;
-        if (sort == null) {
-            paging = PageRequest.of(from, size);
+                                           LocalDateTime rangeStart, LocalDateTime rangeEnd,
+                                           boolean onlyAvailable, String sort, int from, int size) {
+
+        int page = from / size;
+
+        Sort sortObj;
+        if ("EVENT_DATE".equals(sort)) {
+            sortObj = Sort.by("eventDateTime").descending()
+                    .and(Sort.by("id").descending());
         } else {
-            if (sort.equals("VIEWS") || sort.equals("EVENT_DATE") || sort.isBlank()) {
-                if (sort.equals("EVENT_DATE")) {
-                    paging = PageRequest.of((from) % size, size, Sort.by("eventDateTime")
-                            .descending());
-                } else {
-                    paging = PageRequest.of(from, size);
-                }
-            } else {
-                throw new ConflictException("Неверная сортировка. Используй VIEW or EVENT_DATE");
-            }
+            sortObj = Sort.by("id").descending();
         }
+
+        Pageable paging = PageRequest.of(page, size, sortObj);
+
+        Page<Event> events;
         if (onlyAvailable) {
             if (rangeStart == null || rangeEnd == null) {
-                events = eventRepository.findAllAvailablePublishedEventsByCategoryAndStateAfterDate(text,
-                        now().toInstant(ZoneOffset.UTC), categories, paging, EventState.PUBLISHED,
-                        CONFIRMED, paid);
-            } else {
-                events = eventRepository.findAllAvailablePublishedEventsByCategoryAndStateBetweenDates(text,
-                        rangeStart.toInstant(ZoneOffset.UTC), rangeEnd.toInstant(ZoneOffset.UTC), categories, paging,
+                events = eventRepository.findAllAvailablePublishedEventsByCategoryAndStateAfterDate(
+                        text, now().toInstant(ZoneOffset.UTC), categories, paging,
                         EventState.PUBLISHED, CONFIRMED, paid);
+            } else {
+                events = eventRepository.findAllAvailablePublishedEventsByCategoryAndStateBetweenDates(
+                        text, rangeStart.toInstant(ZoneOffset.UTC), rangeEnd.toInstant(ZoneOffset.UTC),
+                        categories, paging, EventState.PUBLISHED, CONFIRMED, paid);
             }
         } else {
             if (rangeStart == null || rangeEnd == null) {
-                events = eventRepository.findAllEventsWithStatusAfterDate(text, now().toInstant(ZoneOffset.UTC),
-                        categories, EventState.PUBLISHED, paging, paid);
-            } else {
-                events = eventRepository.findAllEventsWithStatusBetweenDates(text,
-                        rangeStart.toInstant(ZoneOffset.UTC), rangeEnd.toInstant(ZoneOffset.UTC), categories,
+                events = eventRepository.findAllEventsWithStatusAfterDate(
+                        text, now().toInstant(ZoneOffset.UTC), categories,
                         EventState.PUBLISHED, paging, paid);
+            } else {
+                events = eventRepository.findAllEventsWithStatusBetweenDates(
+                        text, rangeStart.toInstant(ZoneOffset.UTC), rangeEnd.toInstant(ZoneOffset.UTC),
+                        categories, EventState.PUBLISHED, paging, paid);
             }
         }
 
-        return getEventsShorts(events.stream().toList());
+        return getEventsShorts(events.getContent());
     }
 
     public List<EventShortDto> getByUserId(Long userId, Pageable paging) {

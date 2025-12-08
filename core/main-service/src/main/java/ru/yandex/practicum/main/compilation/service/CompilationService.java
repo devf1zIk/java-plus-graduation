@@ -135,7 +135,7 @@ public class CompilationService {
 
     public Map<Long, Integer> getEventsViewsMap(List<Long> eventsIds) {
         if (eventsIds == null || eventsIds.isEmpty()) {
-            return new HashMap<>();
+            return Map.of();
         }
 
         List<String> uris = eventsIds.stream()
@@ -149,33 +149,32 @@ public class CompilationService {
                 false
         );
 
-        Map<Long, Integer> eventViewsMap = new HashMap<>();
+        Map<Long, Integer> viewsMap = new HashMap<>();
 
-        if (response.getBody() instanceof List<?> rawStats && !rawStats.isEmpty()) {
-            for (Object item : rawStats) {
+        if (response.getBody() instanceof List<?> rawList && !rawList.isEmpty()) {
+            for (Object item : rawList) {
                 if (!(item instanceof Map<?, ?> map)) continue;
 
                 String uri = (String) map.get("uri");
-                Integer hits = map.get("hits") instanceof Number n ? n.intValue() : 0;
+                if (uri == null || !uri.startsWith("/events/")) continue;
 
-                if (uri != null && uri.startsWith("/events/")) {
-                    String[] parts = uri.split("/");
-                    if (parts.length > 2) {
-                        String idStr = parts[parts.length - 1];
-                        try {
-                            Long eventId = Long.parseLong(idStr);
-                            if (eventsIds.contains(eventId)) {
-                                eventViewsMap.put(eventId, hits);
-                            }
-                        } catch (NumberFormatException ignored) {
-                        }
+                String[] parts = uri.split("/");
+                if (parts.length <= 2) continue;
+
+                String idStr = parts[parts.length - 1];
+                try {
+                    Long eventId = Long.parseLong(idStr);
+                    if (eventsIds.contains(eventId)) {
+                        Integer hits = map.get("hits") instanceof Number n ? n.intValue() : 0;
+                        viewsMap.put(eventId, hits);
                     }
+                } catch (NumberFormatException ignored) {
                 }
             }
         }
-        eventsIds.forEach(id -> eventViewsMap.putIfAbsent(id, 0));
 
-        return eventViewsMap;
+        eventsIds.forEach(id -> viewsMap.putIfAbsent(id, 0));
+        return viewsMap;
     }
 
     private Set<EventShortDto> getEventsShorts(Set<Event> events) {
