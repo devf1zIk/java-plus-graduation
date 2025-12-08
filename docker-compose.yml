@@ -5,7 +5,7 @@ services:
     ports:
       - "5433:5432"
     environment:
-      POSTGRES_USER: user
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DB: ewm-stats
     healthcheck:
@@ -21,7 +21,7 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: user
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DB: ewm-main
     healthcheck:

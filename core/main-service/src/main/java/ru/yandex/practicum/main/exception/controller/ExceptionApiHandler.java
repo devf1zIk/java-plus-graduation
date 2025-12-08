@@ -19,21 +19,21 @@ public class ExceptionApiHandler {
     @ExceptionHandler(ConflictException.class)
     @ResponseStatus(CONFLICT)
     public ErrorResponse entityIsAlreadyExist(ConflictException exception) {
-        log.warn("Entity is already exist", exception.getMessage(), exception.getStackTrace());
+        log.warn("Entity is already exist. Message: {}", exception.getMessage(), exception);
         return new ErrorResponse(exception.getMessage(), "Entity is already exist!", CONFLICT.toString());
     }
 
     @ExceptionHandler(PublicationException.class)
     @ResponseStatus(CONFLICT)
     public ErrorResponse publicationIsNotExist(PublicationException exception) {
-        log.warn("Publication failed", exception.getMessage(), exception.getStackTrace());
+        log.warn("Publication failed. Message: {}", exception.getMessage(), exception);
         return new ErrorResponse(exception.getMessage(), "Publication failed!", CONFLICT.toString());
     }
 
     @ExceptionHandler(NotFoundException.class)
     @ResponseStatus(NOT_FOUND)
     public ErrorResponse entityIsNotExist(NotFoundException exception) {
-        log.warn("Entity is not found", exception.getMessage(), exception.getStackTrace());
+        log.warn("Entity is not found. Message: {}", exception.getMessage(), exception);
         return new ErrorResponse(exception.getMessage(), "Entity is not found!", NOT_FOUND.toString());
     }
 
@@ -47,9 +47,10 @@ public class ExceptionApiHandler {
                 .orElse("Unknown error");
         String title = items.stream()
                 .map(FieldError::getDefaultMessage)
-                .findFirst().orElse("Unknown error");
+                .findFirst()
+                .orElse("Unknown error");
         message = message + " - " + title;
-        log.warn(message);
+        log.warn("Validation error: {}", message, e);
 
         return new ErrorResponse(message, "Validation error", BAD_REQUEST.toString());
     }
@@ -57,29 +58,28 @@ public class ExceptionApiHandler {
     @ExceptionHandler({MissingServletRequestParameterException.class})
     @ResponseStatus(BAD_REQUEST)
     public ErrorResponse handleMissingServletRequestParameterException(final Throwable e) {
-        log.warn("MissingServletRequestParameterException. Message: {}, StackTrace: {}", e.getMessage(),
-                e.getStackTrace());
+        log.warn("MissingServletRequestParameterException. Message: {}", e.getMessage(), e);
         return new ErrorResponse(e.getMessage(), "Validation error", BAD_REQUEST.toString());
     }
 
     @ExceptionHandler(HandlerMethodValidationException.class)
     @ResponseStatus(BAD_REQUEST)
     public ErrorResponse handlerMethodValidationException(final Throwable e) {
-        log.warn("HandlerMethodValidationException. Message: {}, StackTrace: {}", e.getMessage(), e.getStackTrace());
+        log.warn("HandlerMethodValidationException. Message: {}", e.getMessage(), e);
         return new ErrorResponse(e.getMessage(), "Validation error", BAD_REQUEST.toString());
     }
 
     @ExceptionHandler
     @ResponseStatus(INTERNAL_SERVER_ERROR)
     public ErrorResponse handleOtherExceptions(final Throwable e) {
-        log.warn("Exception. Message: {}, StackTrace: {}", e.getMessage(), e.getStackTrace());
+        log.warn("Exception. Message: {}", e.getMessage(), e);
         return new ErrorResponse(e.getMessage(), "Unknown error", INTERNAL_SERVER_ERROR.toString());
     }
 
     @ExceptionHandler(BadRequestException.class)
     @ResponseStatus(BAD_REQUEST)
     public ErrorResponse handleIncorrectParameterException(final BadRequestException e) {
-        log.warn("BadRequestException. Message: {}, StackTrace: {}", e.getMessage(), e.getStackTrace());
+        log.warn("BadRequestException. Message: {}", e.getMessage(), e);
         return new ErrorResponse(e.getParameter(), "Bad request", BAD_REQUEST.toString());
     }
 }
