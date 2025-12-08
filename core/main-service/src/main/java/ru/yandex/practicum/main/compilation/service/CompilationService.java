@@ -135,7 +135,7 @@ public class CompilationService {
 
     public Map<Long, Integer> getEventsViewsMap(List<Long> eventsIds) {
         if (eventsIds == null || eventsIds.isEmpty()) {
-            return Map.of();
+            return new HashMap<>();
         }
 
         List<String> uris = eventsIds.stream()
