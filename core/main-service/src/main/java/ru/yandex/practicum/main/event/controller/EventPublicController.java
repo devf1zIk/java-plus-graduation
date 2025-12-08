@@ -32,7 +32,7 @@ public class EventPublicController {
     @GetMapping("/{id}")
     public EventDto getEvent(@PathVariable Long id,
                              HttpServletRequest request) {
-        statClient.create(new HitDto(request.getRemoteAddr(), "ewm-main", request.getRequestURI(),
+        statClient.create(new HitDto(request.getRemoteAddr(), "main-service", request.getRequestURI(),
                 LocalDateTime.now()));
 
         return eventService.getById(id);
@@ -52,7 +52,7 @@ public class EventPublicController {
                                             @PositiveOrZero @RequestParam(value = "from", defaultValue = "0") int from,
                                             @Positive @RequestParam(value = "size", defaultValue = "10") int size,
                                             HttpServletRequest request) {
-        statClient.create(new HitDto(request.getRemoteAddr(), "ewm-main", request.getRequestURI(),
+        statClient.create(new HitDto(request.getRemoteAddr(), "main-service", request.getRequestURI(),
                 LocalDateTime.now()));
 
         return eventService.getAllShort(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size);

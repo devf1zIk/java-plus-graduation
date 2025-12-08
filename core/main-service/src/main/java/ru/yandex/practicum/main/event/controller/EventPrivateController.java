@@ -44,7 +44,7 @@ public class EventPrivateController {
                                              @Positive @RequestParam(value = "size", defaultValue = "10") int size,
                                              HttpServletRequest request) {
         Pageable paging = PageRequest.of(from, size);
-        statClient.create(new HitDto(request.getRemoteAddr(), "ewm-main", "/events", LocalDateTime.now()));
+        statClient.create(new HitDto(request.getRemoteAddr(), "main-service", "/events", LocalDateTime.now()));
 
         return eventService.getByUserId(userId, paging);
     }
@@ -58,7 +58,7 @@ public class EventPrivateController {
 
     @GetMapping("/{userId}/events/{eventId}")
     public EventDto getUserEvents(@PathVariable Long userId, @PathVariable Long eventId, HttpServletRequest request) {
-        statClient.create(new HitDto(request.getRemoteAddr(), "ewm-main", "/events", LocalDateTime.now()));
+        statClient.create(new HitDto(request.getRemoteAddr(), "main-service", "/events", LocalDateTime.now()));
 
         return eventService.getEventByUserId(userId, eventId);
     }
@@ -66,7 +66,7 @@ public class EventPrivateController {
     @PatchMapping("/{userId}/events/{eventId}")
     public EventDto updateEvent(@RequestBody @Valid UpdateEventUserRequest eventDto,
                                 @PathVariable Long userId, @PathVariable Long eventId, HttpServletRequest request) {
-        statClient.create(new HitDto(request.getRemoteAddr(), "ewm-main", "/events/" + eventId,
+        statClient.create(new HitDto(request.getRemoteAddr(), "main-service", "/events/" + eventId,
                 LocalDateTime.now()));
 
         return eventService.updateByUser(eventDto, userId, eventId);
