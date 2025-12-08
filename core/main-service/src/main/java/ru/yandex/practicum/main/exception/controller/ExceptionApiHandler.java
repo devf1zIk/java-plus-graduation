@@ -19,21 +19,21 @@ public class ExceptionApiHandler {
     @ExceptionHandler(ConflictException.class)
     @ResponseStatus(CONFLICT)
     public ErrorResponse entityIsAlreadyExist(ConflictException exception) {
-        log.warn("Entity is already exist", exception.getMessage(), exception.getStackTrace());
+        log.warn("Entity is already exist Message: {}, StackTrace: {}", exception.getMessage(), exception.getStackTrace());
         return new ErrorResponse(exception.getMessage(), "Entity is already exist!", CONFLICT.toString());
     }
 
     @ExceptionHandler(PublicationException.class)
     @ResponseStatus(CONFLICT)
     public ErrorResponse publicationIsNotExist(PublicationException exception) {
-        log.warn("Publication failed", exception.getMessage(), exception.getStackTrace());
+        log.warn("Publication failed Message: {}, StackTrace: {}",exception.getMessage(), exception.getStackTrace());
         return new ErrorResponse(exception.getMessage(), "Publication failed!", CONFLICT.toString());
     }
 
     @ExceptionHandler(NotFoundException.class)
     @ResponseStatus(NOT_FOUND)
     public ErrorResponse entityIsNotExist(NotFoundException exception) {
-        log.warn("Entity is not found", exception.getMessage(), exception.getStackTrace());
+        log.warn("Entity is not found Message: {}, StackTrace: {}", exception.getMessage(), exception.getStackTrace());
         return new ErrorResponse(exception.getMessage(), "Entity is not found!", NOT_FOUND.toString());
     }
 
