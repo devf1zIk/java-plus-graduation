@@ -36,6 +36,9 @@ public class Event {
     @Column(name = "owner_id")
     private Long ownerId;
 
+    @Column(name = "confirm_request")
+    private Long confirmRequest;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "location_id")
     private Location location;
