@@ -15,11 +15,7 @@ import ru.yandex.practicum.dto.event.CreateNewEventDto;
 import ru.yandex.practicum.dto.event.EventDto;
 import ru.yandex.practicum.dto.event.EventShortDto;
 import ru.yandex.practicum.dto.event.UpdateEventUserRequest;
-import ru.yandex.practicum.dto.request.RequestDto;
-import ru.yandex.practicum.dto.request.RequestStatusUpdateRequest;
-import ru.yandex.practicum.dto.request.RequestStatusUpdateResponse;
 import ru.yandex.practicum.service.EventService;
-import ru.yandex.practicum.service.RequestService;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -28,13 +24,11 @@ import java.util.List;
 public class EventPrivateController {
 
     private final EventService eventService;
-    private final RequestService requestService;
     private final StatsClient statClient;
 
     @Autowired
-    public EventPrivateController(EventService eventService, RequestService requestService, StatsClient statClient) {
+    public EventPrivateController(EventService eventService, StatsClient statClient) {
         this.eventService = eventService;
-        this.requestService = requestService;
         this.statClient = statClient;
     }
 
@@ -70,16 +64,5 @@ public class EventPrivateController {
                 LocalDateTime.now()));
 
         return eventService.updateByUser(eventDto, userId, eventId);
-    }
-
-    @GetMapping("/{userId}/events/{eventId}/requests")
-    public List<RequestDto> getEventRequests(@PathVariable Long userId, @PathVariable Long eventId) {
-        return requestService.getEventRequests(userId, eventId);
-    }
-
-    @PatchMapping("/{userId}/events/{eventId}/requests")
-    public RequestStatusUpdateResponse updateRequest(@PathVariable Long userId, @PathVariable Long eventId,
-                                                     @RequestBody RequestStatusUpdateRequest request) {
-        return requestService.updateRequest(userId, eventId, request);
     }
 }

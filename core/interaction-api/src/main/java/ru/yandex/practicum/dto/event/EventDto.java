@@ -9,7 +9,6 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import ru.yandex.practicum.enums.EventState;
 import ru.yandex.practicum.dto.user.UserShortDto;
-import ru.yandex.practicum.model.Location;
 import java.time.LocalDateTime;
 
 @Data
@@ -32,7 +31,7 @@ public class EventDto {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime eventDate;
     private UserShortDto initiator;
-    private Location location;
+    private LocationDto location;
     private Boolean paid;
     private Long participantLimit;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

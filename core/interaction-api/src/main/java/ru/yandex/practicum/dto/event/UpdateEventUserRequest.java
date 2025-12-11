@@ -7,7 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import ru.yandex.practicum.enums.UserEventActions;
-import ru.yandex.practicum.model.Location;
 import java.time.LocalDateTime;
 
 @Data
@@ -22,7 +21,7 @@ public class UpdateEventUserRequest {
     private String description;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", shape = JsonFormat.Shape.STRING)
     private LocalDateTime eventDate;
-    private Location location;
+    private LocationDto location;
     private Boolean paid;
     @PositiveOrZero
     private Long participantLimit;

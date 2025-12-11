@@ -5,11 +5,12 @@ import ru.yandex.practicum.dto.event.CreateNewEventDto;
 import ru.yandex.practicum.dto.event.EventCategoryDto;
 import ru.yandex.practicum.dto.event.EventDto;
 import ru.yandex.practicum.dto.event.EventShortDto;
+import ru.yandex.practicum.dto.user.UserDto;
 import ru.yandex.practicum.dto.user.UserShortDto;
 import ru.yandex.practicum.enums.EventState;
 import ru.yandex.practicum.model.Event;
 import ru.yandex.practicum.model.EventCategory;
-import ru.yandex.practicum.model.User;
+import ru.yandex.practicum.model.Location;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import static java.time.LocalDateTime.now;
@@ -19,8 +20,10 @@ import static java.time.LocalDateTime.ofInstant;
 public class EventMapper {
 
 
-    public static Event fromCreateNewEventDtoToEvent(CreateNewEventDto newEventDto, User owner,
+    public static Event fromCreateNewEventDtoToEvent(CreateNewEventDto newEventDto, Long ownerId,
                                                      EventCategory category) {
+        Location location = LocationMapper.location(newEventDto.getLocation());
+
         return new Event(null,
                 newEventDto.getTitle(),
                 newEventDto.getAnnotation(),
@@ -28,8 +31,8 @@ public class EventMapper {
                 category,
                 now().toInstant(ZoneOffset.UTC),
                 newEventDto.getEventDate().toInstant(ZoneOffset.UTC),
-                owner,
-                newEventDto.getLocation(),
+                ownerId,
+                location,
                 newEventDto.getPaid(),
                 newEventDto.getParticipantLimit(),
                 null,
@@ -47,7 +50,7 @@ public class EventMapper {
                 event.getDescription(),
                 ofInstant(event.getEventDateTime(), ZoneId.of("UTC")),
                 owner,
-                event.getLocation(),
+                LocationMapper.locationDto(event.getLocation()),
                 event.getIsPaid(),
                 event.getParticipantLimit(),
                 null,

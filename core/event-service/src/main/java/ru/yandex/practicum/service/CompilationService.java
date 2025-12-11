@@ -5,6 +5,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.client.StatsClient;
+import ru.yandex.practicum.client.request.RequestClient;
+import ru.yandex.practicum.client.user.UserClient;
 import ru.yandex.practicum.dto.compilation.CompilationDto;
 import ru.yandex.practicum.dto.compilation.CompilationRequestDto;
 import ru.yandex.practicum.dto.event.EventShortDto;
@@ -13,7 +15,6 @@ import ru.yandex.practicum.exception.model.NotFoundException;
 import ru.yandex.practicum.mapper.CompilationMapper;
 import ru.yandex.practicum.mapper.EventCategoryMapper;
 import ru.yandex.practicum.mapper.EventMapper;
-import ru.yandex.practicum.mapper.UserMapper;
 import ru.yandex.practicum.model.Compilation;
 import ru.yandex.practicum.model.Event;
 import ru.yandex.practicum.repository.CompilationRepository;
@@ -29,17 +30,21 @@ public class CompilationService {
     private final CompilationRepository compilationRepository;
     private final EventRepository eventRepository;
     private final EventService eventService;
+    private final RequestClient requestClient;
 
     private final StatsClient statClient;
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private final UserClient userClient;
 
     @Autowired
     public CompilationService(CompilationRepository compilationRepository, EventRepository eventRepository,
-                              EventService eventService, StatsClient statClient) {
+                              EventService eventService, RequestClient requestClient, StatsClient statClient, UserClient userClient) {
         this.compilationRepository = compilationRepository;
         this.eventRepository = eventRepository;
         this.eventService = eventService;
+        this.requestClient = requestClient;
         this.statClient = statClient;
+        this.userClient = userClient;
     }
 
     public List<CompilationDto> getAll(boolean pinned, Pageable pageable) {
@@ -177,14 +182,14 @@ public class CompilationService {
 
     private Set<EventShortDto> getEventsShorts(Set<Event> events) {
         List<Long> eventIds = events.stream().map(Event::getId).toList();
-        Map<Long, Long> confirmedRequestsCountForEvents = eventService
-                .getConfirmedRequestsCountForEvents(new ArrayList<>(events));
+        Map<Long, Long> confirmedRequestsCountForEvents = requestClient
+                .getConfirmedRequestsCount(new ArrayList<>(eventIds));
         Map<Long, Integer> viewsMap = getEventsViewsMap(new ArrayList<>(eventIds));
 
         return events.stream()
                 .map(event -> EventMapper.fromEventToEventShortDto(event,
                         EventCategoryMapper.toCategoryDtoFromCategory(event.getCategory()),
-                        UserMapper.fromUserToUserShortDto(event.getOwner()),
+                        userClient.getShortUser(event.getOwnerId()),
                         confirmedRequestsCountForEvents.getOrDefault(event.getId(), 0L),
                         viewsMap.get(event.getId()))).collect(Collectors.toSet());
     }

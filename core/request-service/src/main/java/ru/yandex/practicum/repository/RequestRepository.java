@@ -4,26 +4,24 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.enums.RequestStatus;
-import ru.yandex.practicum.model.Event;
 import ru.yandex.practicum.model.ParticipationRequest;
-import ru.yandex.practicum.model.User;
 import java.util.List;
 
 @Repository
 public interface RequestRepository extends JpaRepository<ParticipationRequest, Long> {
 
-    List<ParticipationRequest> findByEvent(Event event);
+    List<ParticipationRequest> findByEvent(Long eventId);
 
-    List<ParticipationRequest> findAllByRequester(User requester);
+    List<ParticipationRequest> findAllByRequester(Long requesterId);
 
-    List<ParticipationRequest> findAllByEventAndRequester(Event event, User requester);
+    List<ParticipationRequest> findAllByEventAndRequester(Long eventId, Long requesterId);
 
-    List<ParticipationRequest> findAllByEventAndStatus(Event event, RequestStatus status);
+    List<ParticipationRequest> findAllByEventAndStatus(Long eventId, RequestStatus status);
+
+    List<ParticipationRequest> findAllByIdIn(List<Long> ids);
 
     @Query("SELECT p " +
             "FROM ParticipationRequest p " +
-            "WHERE p.event IN :events AND p.status = :status")
-    List<ParticipationRequest> findAllByEventInAndStatus(List<Event> events, RequestStatus status);
-
-    List<ParticipationRequest> findAllByIdIn(List<Long> ids);
+            "WHERE p.eventId IN :events AND p.status = :status")
+    List<ParticipationRequest> findAllByEventInAndStatus(List<Long> eventId, RequestStatus status);
 }

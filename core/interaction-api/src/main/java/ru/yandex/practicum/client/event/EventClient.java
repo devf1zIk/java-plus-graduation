@@ -3,9 +3,6 @@ package ru.yandex.practicum.client.event;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.dto.event.*;
-import ru.yandex.practicum.dto.request.RequestDto;
-import ru.yandex.practicum.dto.request.RequestStatusUpdateRequest;
-import ru.yandex.practicum.dto.request.RequestStatusUpdateResponse;
 import java.util.List;
 
 @FeignClient(name = "event-service", fallback = EventClientFallback.class)
@@ -50,18 +47,6 @@ public interface EventClient extends EventOperations {
     EventDto updateEventByUser(@PathVariable("userId") Long userId,
                                @PathVariable("eventId") Long eventId,
                                @RequestBody UpdateEventUserRequest dto);
-
-    @Override
-    @GetMapping("/users/{userId}/events/{eventId}/requests")
-    List<RequestDto> getEventRequests(@PathVariable("userId") Long userId,
-                                      @PathVariable("eventId") Long eventId);
-
-    @Override
-    @PatchMapping("/users/{userId}/events/{eventId}/requests")
-    RequestStatusUpdateResponse updateEventRequests(@PathVariable("userId") Long userId,
-                                                    @PathVariable("eventId") Long eventId,
-                                                    @RequestBody RequestStatusUpdateRequest dto);
-
 
     @Override
     @GetMapping("/admin/events")

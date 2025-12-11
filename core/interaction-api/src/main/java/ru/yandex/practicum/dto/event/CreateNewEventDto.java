@@ -8,7 +8,6 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import ru.yandex.practicum.model.Location;
 import java.time.LocalDateTime;
 
 @Data
@@ -27,7 +26,7 @@ public class CreateNewEventDto {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", shape = JsonFormat.Shape.STRING)
     @NotNull
     private LocalDateTime eventDate;
-    private Location location;
+    private LocationDto location;
     private Boolean paid;
     @PositiveOrZero
     private Long participantLimit;

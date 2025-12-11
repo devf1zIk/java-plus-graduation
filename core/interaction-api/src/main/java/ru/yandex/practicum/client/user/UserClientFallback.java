@@ -3,6 +3,8 @@ package ru.yandex.practicum.client.user;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.dto.user.UserDto;
+import ru.yandex.practicum.dto.user.UserShortDto;
+
 import java.util.Collections;
 import java.util.List;
 
@@ -19,6 +21,12 @@ public class UserClientFallback implements UserOperations{
     @Override
     public UserDto getUser(long userId) {
         log.error("User service unavailable → getById: {}", userId);
+        return null;
+    }
+
+    @Override
+    public UserShortDto getUserShort(long userId) {
+        log.error("UserShort service unavailable → getById: {}", userId);
         return null;
     }
 

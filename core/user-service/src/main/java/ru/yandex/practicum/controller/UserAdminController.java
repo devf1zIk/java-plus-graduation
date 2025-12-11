@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.client.user.UserOperations;
 import ru.yandex.practicum.dto.user.UserDto;
+import ru.yandex.practicum.dto.user.UserShortDto;
 import ru.yandex.practicum.service.UserService;
 import java.util.List;
 
@@ -34,6 +35,12 @@ public class UserAdminController implements UserOperations {
     @GetMapping("/{id}")
     public UserDto getUser(@PathVariable("id") long id) {
         return userService.getById(id);
+    }
+
+    @Override
+    @GetMapping("/{id}")
+    public UserShortDto getUserShort(@PathVariable("id") long userId) {
+        return userService.getUserShort(userId);
     }
 
     @Override

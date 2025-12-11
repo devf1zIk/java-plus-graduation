@@ -3,6 +3,7 @@ package ru.yandex.practicum.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.dto.user.UserShortDto;
 import ru.yandex.practicum.exception.model.ConflictException;
 import ru.yandex.practicum.exception.model.NotFoundException;
 import ru.yandex.practicum.dto.user.UserDto;
@@ -34,6 +35,10 @@ public class UserService {
 
     public UserDto getById(long userId) {
         return UserMapper.toUserDtoFromUser(getUserIfExist(userId));
+    }
+
+    public UserShortDto getUserShort(long userId) {
+        return UserMapper.fromUserToUserShortDto(getUserIfExist(userId));
     }
 
     public UserDto create(UserDto userDto) {

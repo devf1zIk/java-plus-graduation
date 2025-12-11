@@ -1,27 +1,27 @@
 package ru.yandex.practicum.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.client.StatsClient;
+import ru.yandex.practicum.client.request.RequestClient;
+import ru.yandex.practicum.client.user.UserClient;
 import ru.yandex.practicum.dto.event.*;
+import ru.yandex.practicum.dto.user.UserDto;
 import ru.yandex.practicum.enums.AdminEventAction;
 import ru.yandex.practicum.enums.EventState;
 import ru.yandex.practicum.enums.RequestStatus;
 import ru.yandex.practicum.exception.model.BadRequestException;
 import ru.yandex.practicum.exception.model.ConflictException;
 import ru.yandex.practicum.exception.model.NotFoundException;
-import ru.yandex.practicum.mapper.EventCategoryMapper;
-import ru.yandex.practicum.mapper.EventMapper;
-import ru.yandex.practicum.mapper.UserMapper;
+import ru.yandex.practicum.mapper.*;
 import ru.yandex.practicum.model.*;
 import ru.yandex.practicum.repository.EventCategoryRepository;
 import ru.yandex.practicum.repository.EventRepository;
 import ru.yandex.practicum.repository.LocationRepository;
-import ru.yandex.practicum.repository.RequestRepository;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -29,29 +29,18 @@ import java.util.*;
 import static java.time.LocalDateTime.now;
 
 @Service
+@RequiredArgsConstructor
 public class EventService {
 
     private final EventCategoryRepository categoryRepository;
     private final EventRepository eventRepository;
     private final LocationRepository locationRepository;
-    private final RequestRepository requestRepository;
-    private final UserService userService;
+    private final UserClient userClient;
+    private final RequestClient requestClient;
     private final StatsClient statsClient;
 
-    @Autowired
-    public EventService(EventCategoryRepository categoryRepository, EventRepository eventRepository,
-                        LocationRepository locationRepository, RequestRepository requestRepository,
-                        UserService userService, StatsClient statsClient) {
-        this.categoryRepository = categoryRepository;
-        this.eventRepository = eventRepository;
-        this.locationRepository = locationRepository;
-        this.requestRepository = requestRepository;
-        this.userService = userService;
-        this.statsClient = statsClient;
-    }
-
     public EventDto create(CreateNewEventDto eventDto, Long userId) {
-        User owner = userService.getUserIfExist(userId);
+        UserDto ownerId = userClient.getUser(userId);
         EventCategory category = categoryRepository.findById(eventDto.getCategory())
                 .orElseThrow(() -> new NotFoundException(
                         "Категория с id " + eventDto.getCategory() + "не существует!"));
@@ -60,7 +49,7 @@ public class EventService {
             throw new BadRequestException("Неверный eventStarDate: " + eventDto.getEventDate());
         }
 
-        Event event = EventMapper.fromCreateNewEventDtoToEvent(eventDto, owner, category);
+        Event event = EventMapper.fromCreateNewEventDtoToEvent(eventDto, ownerId.getId(), category);
         if (event.getLocation().getLat() != null && event.getLocation().getLon() != null) {
             event.setLocation(saveLocation(event.getLocation()));
         } else {
@@ -78,7 +67,7 @@ public class EventService {
         Event result = eventRepository.save(event);
 
         return EventMapper.fromEventToEventDto(result, EventCategoryMapper.toCategoryDtoFromCategory(category),
-                UserMapper.fromUserToUserShortDto(owner), 0L, 0);
+                userClient.getShortUser(ownerId.getId()), 0L, 0);
     }
 
     public EventDto updateByAdmin(Long eventId, UpdateEventAdminDto updateEventDto) {
@@ -106,7 +95,7 @@ public class EventService {
         if (updateEventDto.getDescription() != null) {
             event.setDescription(updateEventDto.getDescription());
         }
-        updateEvent(event, updateEventDto.getEventDate(), updateEventDto.getLocation(), updateEventDto.getPaid(),
+        updateEvent(event, updateEventDto.getEventDate(), LocationMapper.location(updateEventDto.getLocation()), updateEventDto.getPaid(),
                 updateEventDto.getParticipantLimit(), updateEventDto.getRequestModeration());
         if (updateEventDto.getStateAction() != null) {
             switch (updateEventDto.getStateAction()) {
@@ -195,9 +184,9 @@ public class EventService {
 
     public EventDto updateByUser(UpdateEventUserRequest eventDto, Long userId, Long eventId) {
         Event event = getEventIfExist(eventId);
-        userService.getUserIfExist(userId);
+        userClient.getUser(userId);
 
-        if (!Objects.equals(event.getOwner().getId(), userId)) {
+        if (!Objects.equals(event.getOwnerId(), userId)) {
             throw new NotFoundException("User с id " + userId + " не хозяин для события " + eventId);
         }
 
@@ -222,7 +211,7 @@ public class EventService {
         if (eventDto.getDescription() != null && !eventDto.getDescription().isBlank()) {
             event.setDescription(eventDto.getDescription());
         }
-        updateEvent(event, eventDto.getEventDate(), eventDto.getLocation(), eventDto.getPaid(),
+        updateEvent(event, eventDto.getEventDate(), LocationMapper.location(eventDto.getLocation()), eventDto.getPaid(),
                 eventDto.getParticipantLimit(), eventDto.getRequestModeration());
         if (eventDto.getStateAction() != null) {
             switch (eventDto.getStateAction()) {
@@ -287,16 +276,16 @@ public class EventService {
     }
 
     public List<EventShortDto> getByUserId(Long userId, Pageable paging) {
-        User user = userService.getUserIfExist(userId);
-        List<Event> events = eventRepository.findAllByOwner(user, paging).stream().toList();
+        UserDto user = userClient.getUser(userId);
+        List<Event> events = eventRepository.findAllByOwner(user.getId(), paging).stream().toList();
 
         return getEventsShorts(events);
     }
 
     public EventDto getEventByUserId(Long userId, Long eventId) {
         Event event = getEventIfExist(eventId);
-        userService.getUserIfExist(userId);
-        if (!Objects.equals(event.getOwner().getId(), userId)) {
+        userClient.getUser(userId);
+        if (!Objects.equals(event.getOwnerId(), userId)) {
             throw new NotFoundException("User с id " + userId + " не хозяин события " + eventId);
         }
 
@@ -333,23 +322,6 @@ public class EventService {
         return eventViewsMap;
     }
 
-    public Map<Long, Long> getConfirmedRequestsCountForEvents(List<Event> events) {
-        List<ParticipationRequest> requests = requestRepository.findAllByEventInAndStatus(new ArrayList<>(events),
-                RequestStatus.CONFIRMED);
-        Set<Long> requestsIds = new HashSet<>();
-        for (var request : requests) {
-            requestsIds.add(request.getEvent().getId());
-        }
-        Map<Long, Long> confirmedRequestsCountForEvents = new HashMap<>();
-        for (var id : requestsIds) {
-            int count = (int) requests.stream()
-                    .filter(k -> Objects.equals(k.getEvent().getId(), id)).count();
-            confirmedRequestsCountForEvents.put(id, (long) count);
-        }
-
-        return confirmedRequestsCountForEvents;
-    }
-
     private Location saveLocation(Location location) {
         Optional<Location> existedLocation = locationRepository
                 .findByLatAndLon(location.getLat(), location.getLon());
@@ -381,12 +353,12 @@ public class EventService {
     }
 
     private EventDto getEventDtoFromEvent(Event event) {
-        long confirmedRequests = requestRepository.findAllByEventInAndStatus(List.of(event), RequestStatus.CONFIRMED).size();
+        long confirmedRequests = eventRepository.findAllByEventInAndStatus(Collections.singletonList(event.getId()), RequestStatus.CONFIRMED).size();
         Integer views = getEventsViews(event.getId());
 
         return EventMapper.fromEventToEventDto(event,
                 EventCategoryMapper.toCategoryDtoFromCategory(event.getCategory()),
-                UserMapper.fromUserToUserShortDto(event.getOwner()),
+                userClient.getShortUser(event.getOwnerId()),
                 confirmedRequests,
                 views);
     }
@@ -403,24 +375,24 @@ public class EventService {
 
     private List<EventDto> getEventsFulls(List<Event> events) {
         List<Long> eventIds = getEventsIdFromEventsList(events);
-        Map<Long, Long> confirmedRequestsCountForEvents = getConfirmedRequestsCountForEvents(events);
+        Map<Long, Long> confirmedRequestsCountForEvents = requestClient.getConfirmedRequestsCount(eventIds);
         Map<Long, Integer> viewsMap = getEventsViewsMap(new ArrayList<>(eventIds));
 
         return events.stream().map(event -> EventMapper.fromEventToEventDto(event,
                 EventCategoryMapper.toCategoryDtoFromCategory(event.getCategory()),
-                UserMapper.fromUserToUserShortDto(event.getOwner()),
+                userClient.getShortUser(event.getOwnerId()),
                 confirmedRequestsCountForEvents.getOrDefault(event.getId(), 0L),
                 viewsMap.get(event.getId()))).toList();
     }
 
     private List<EventShortDto> getEventsShorts(List<Event> events) {
         List<Long> eventIds = getEventsIdFromEventsList(events);
-        Map<Long, Long> confirmedRequestsCountForEvents = getConfirmedRequestsCountForEvents(events);
+        Map<Long, Long> confirmedRequestsCountForEvents = requestClient.getConfirmedRequestsCount(eventIds);
         Map<Long, Integer> viewsMap = getEventsViewsMap(new ArrayList<>(eventIds));
 
         return events.stream().map(event -> EventMapper.fromEventToEventShortDto(event,
                 EventCategoryMapper.toCategoryDtoFromCategory(event.getCategory()),
-                UserMapper.fromUserToUserShortDto(event.getOwner()),
+                userClient.getShortUser(event.getOwnerId()),
                 confirmedRequestsCountForEvents.getOrDefault(event.getId(), 0L),
                 viewsMap.get(event.getId()))).toList();
     }

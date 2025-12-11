@@ -32,9 +32,10 @@ public class Event {
     private EventCategory category;
     private Instant createdOn;
     private Instant eventDateTime;
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "owner_id")
-    private User owner;
+
+    @Column(name = "owner_id")
+    private Long ownerId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "location_id")
     private Location location;

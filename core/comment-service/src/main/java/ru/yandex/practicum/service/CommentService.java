@@ -7,18 +7,17 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.yandex.practicum.client.event.EventClient;
+import ru.yandex.practicum.client.user.UserClient;
 import ru.yandex.practicum.dto.comment.CommentDto;
 import ru.yandex.practicum.dto.comment.MergeCommentRequest;
+import ru.yandex.practicum.dto.event.EventDto;
 import ru.yandex.practicum.enums.EventState;
 import ru.yandex.practicum.exception.model.NotFoundException;
 import ru.yandex.practicum.exception.model.PublicationException;
 import ru.yandex.practicum.mapper.CommentMapper;
 import ru.yandex.practicum.model.Comment;
-import ru.yandex.practicum.model.Event;
-import ru.yandex.practicum.model.User;
 import ru.yandex.practicum.repository.CommentRepository;
-import ru.yandex.practicum.repository.EventRepository;
-import ru.yandex.practicum.repository.UserRepository;
 import java.util.Collection;
 
 @Slf4j
@@ -26,20 +25,21 @@ import java.util.Collection;
 @Transactional
 @AllArgsConstructor
 public class CommentService {
+
     private final CommentRepository commentRepository;
     private final CommentMapper commentMapper;
-    private final UserRepository userRepository;
-    private final EventRepository eventRepository;
+    private final UserClient userClient;
+    private final EventClient eventClient;
 
     public CommentDto createComment(MergeCommentRequest mergeCommentRequest, Long userId) {
-        User user = findUserById(userId);
-        Event event = findEventById(mergeCommentRequest.getEventId());
+        checkUser(userId);
+        EventDto event = eventClient.getPublicEvent(mergeCommentRequest.getEventId());
 
         if (!event.getState().equals(EventState.PUBLISHED)) {
             throw new PublicationException("Event must be published");
         }
 
-        Comment comment = commentMapper.requestToComment(mergeCommentRequest, event, user);
+        Comment comment = commentMapper.requestToComment(mergeCommentRequest, event.getId(), userId);
         CommentDto response = commentMapper.commentToResponse(commentRepository.save(comment));
         log.info("Comment id={} was created by user id={}", response.getId(), response.getAuthor().getId());
         return response;
@@ -57,13 +57,13 @@ public class CommentService {
         Comment oldComment = commentRepository.findByIdAndAuthorId(commentId, userId).orElseThrow(() ->
                 new NotFoundException(String.format("Comment with id=%d by author id=%d was not found", commentId, userId)));
 
-        if (!oldComment.getEvent().getId().equals(request.getEventId())) {
+        if (!oldComment.getEventId().equals(request.getEventId())) {
             throw new DataIntegrityViolationException("Event Id not correct");
         }
 
         commentMapper.updateComment(
                 request,
-                findEventById(request.getEventId()),
+                request.getEventId(),
                 oldComment);
 
         CommentDto response = commentMapper.commentToResponse(commentRepository.save(oldComment));
@@ -106,13 +106,11 @@ public class CommentService {
         return PageRequest.of(pageNumber, size);
     }
 
-    private Event findEventById(Long eventId) {
-        return eventRepository.findById(eventId).orElseThrow(() ->
-                new NotFoundException(String.format("Event with id=%d not found", eventId)));
-    }
-
-    private User findUserById(Long userId) {
-        return userRepository.findById(userId).orElseThrow(() ->
-                new NotFoundException(String.format("User with id=%d not found", userId)));
+    private void checkUser(Long userId) {
+        try {
+            userClient.getUser(userId);
+        } catch (RuntimeException e) {
+            throw new NotFoundException("User" + userId + " was not found");
+        }
     }
 }

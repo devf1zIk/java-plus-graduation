@@ -3,6 +3,7 @@ package ru.yandex.practicum.client.user;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.dto.user.UserDto;
+import ru.yandex.practicum.dto.user.UserShortDto;
 import java.util.List;
 
 @FeignClient(name = "user-service", path = "/admin/users", contextId = "userAdminClient", fallback = UserClientFallback.class)
@@ -15,6 +16,9 @@ public interface UserClient extends UserOperations {
     @Override
     @GetMapping("/{id}")
     UserDto getUser(@PathVariable("id") long id);
+
+    @GetMapping("/{id}")
+    UserShortDto getShortUser(@PathVariable("id") long id);
 
     @Override
     @GetMapping
