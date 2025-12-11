@@ -33,11 +33,7 @@ public class UserService {
         }
     }
 
-    public UserDto getById(long userId) {
-        return UserMapper.toUserDtoFromUser(getUserIfExist(userId));
-    }
-
-    public UserShortDto getUserShort(long userId) {
+    public UserShortDto getById(long userId) {
         return UserMapper.fromUserToUserShortDto(getUserIfExist(userId));
     }
 

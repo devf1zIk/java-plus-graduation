@@ -9,6 +9,7 @@ import ru.yandex.practicum.dto.request.RequestDto;
 import ru.yandex.practicum.dto.request.RequestStatusUpdateRequest;
 import ru.yandex.practicum.dto.request.RequestStatusUpdateResponse;
 import ru.yandex.practicum.dto.user.UserDto;
+import ru.yandex.practicum.dto.user.UserShortDto;
 import ru.yandex.practicum.enums.RequestStatus;
 import ru.yandex.practicum.exception.model.ConflictException;
 import ru.yandex.practicum.exception.model.NotFoundException;
@@ -111,7 +112,7 @@ public class RequestService {
     }
 
     public RequestDto create(Long userId, Long eventId) {
-        UserDto userDto = userClient.getUser(userId);
+        UserShortDto userDto = userClient.getUser(userId);
         EventDto eventDto = eventClient.getPublicEvent(eventId);
         if (Objects.equals(userDto.getId(), eventDto.getInitiator().getId())) {
             throw new ConflictException("User c id " + userId + " не хозяин для события " + eventId);
@@ -159,7 +160,7 @@ public class RequestService {
     }
 
     public RequestDto cancelRequestByUser(Long userId, Long requestId) {
-        UserDto userDto = userClient.getUser(userId);
+        UserShortDto userDto = userClient.getUser(userId);
         ParticipationRequest request = requestRepository
                 .findById(requestId)
                 .orElseThrow(() -> new NotFoundException("Запрос с id=" + requestId + " не существует!"));

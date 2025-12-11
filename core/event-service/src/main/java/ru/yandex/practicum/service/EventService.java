@@ -11,6 +11,7 @@ import ru.yandex.practicum.client.request.RequestClient;
 import ru.yandex.practicum.client.user.UserClient;
 import ru.yandex.practicum.dto.event.*;
 import ru.yandex.practicum.dto.user.UserDto;
+import ru.yandex.practicum.dto.user.UserShortDto;
 import ru.yandex.practicum.enums.AdminEventAction;
 import ru.yandex.practicum.enums.EventState;
 import ru.yandex.practicum.enums.RequestStatus;
@@ -40,7 +41,7 @@ public class EventService {
     private final StatsClient statsClient;
 
     public EventDto create(CreateNewEventDto eventDto, Long userId) {
-        UserDto ownerId = userClient.getUser(userId);
+        UserShortDto ownerId = userClient.getUser(userId);
         EventCategory category = categoryRepository.findById(eventDto.getCategory())
                 .orElseThrow(() -> new NotFoundException(
                         "Категория с id " + eventDto.getCategory() + "не существует!"));
@@ -67,7 +68,7 @@ public class EventService {
         Event result = eventRepository.save(event);
 
         return EventMapper.fromEventToEventDto(result, EventCategoryMapper.toCategoryDtoFromCategory(category),
-                userClient.getShortUser(ownerId.getId()), 0L, 0);
+                userClient.getUser(ownerId.getId()), 0L, 0);
     }
 
     public EventDto updateByAdmin(Long eventId, UpdateEventAdminDto updateEventDto) {
@@ -276,7 +277,7 @@ public class EventService {
     }
 
     public List<EventShortDto> getByUserId(Long userId, Pageable paging) {
-        UserDto user = userClient.getUser(userId);
+        UserShortDto user = userClient.getUser(userId);
         List<Event> events = eventRepository.findAllByOwner(user.getId(), paging).stream().toList();
 
         return getEventsShorts(events);
@@ -358,7 +359,7 @@ public class EventService {
 
         return EventMapper.fromEventToEventDto(event,
                 EventCategoryMapper.toCategoryDtoFromCategory(event.getCategory()),
-                userClient.getShortUser(event.getOwnerId()),
+                userClient.getUser(event.getOwnerId()),
                 confirmedRequests,
                 views);
     }
@@ -380,7 +381,7 @@ public class EventService {
 
         return events.stream().map(event -> EventMapper.fromEventToEventDto(event,
                 EventCategoryMapper.toCategoryDtoFromCategory(event.getCategory()),
-                userClient.getShortUser(event.getOwnerId()),
+                userClient.getUser(event.getOwnerId()),
                 confirmedRequestsCountForEvents.getOrDefault(event.getId(), 0L),
                 viewsMap.get(event.getId()))).toList();
     }
@@ -392,7 +393,7 @@ public class EventService {
 
         return events.stream().map(event -> EventMapper.fromEventToEventShortDto(event,
                 EventCategoryMapper.toCategoryDtoFromCategory(event.getCategory()),
-                userClient.getShortUser(event.getOwnerId()),
+                userClient.getUser(event.getOwnerId()),
                 confirmedRequestsCountForEvents.getOrDefault(event.getId(), 0L),
                 viewsMap.get(event.getId()))).toList();
     }

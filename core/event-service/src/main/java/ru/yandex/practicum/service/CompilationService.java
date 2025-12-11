@@ -189,7 +189,7 @@ public class CompilationService {
         return events.stream()
                 .map(event -> EventMapper.fromEventToEventShortDto(event,
                         EventCategoryMapper.toCategoryDtoFromCategory(event.getCategory()),
-                        userClient.getShortUser(event.getOwnerId()),
+                        userClient.getUser(event.getOwnerId()),
                         confirmedRequestsCountForEvents.getOrDefault(event.getId(), 0L),
                         viewsMap.get(event.getId()))).collect(Collectors.toSet());
     }
