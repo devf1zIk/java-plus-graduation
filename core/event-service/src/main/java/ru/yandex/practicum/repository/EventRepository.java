@@ -46,19 +46,15 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     @Query(" SELECT e " +
             "FROM Event e " +
-            "JOIN ParticipationRequest r ON e.id = r.eventId " +
-            "WHERE (upper(e.annotation) LIKE UPPER(CONCAT('%', :text, '%')) " +
-            "OR UPPER(e.description) LIKE UPPER(CONCAT('%', :text, '%')) " +
-            "OR :text is null) " +
-            "AND (e.category.id IN :categoriesIds)" +
-            "AND e.eventDateTime   >= :startDateTime " +
+            "LEFT JOIN ParticipationRequest r ON e.id = r.eventId AND r.status = :requestState " +
+            "WHERE (:text IS NULL OR UPPER(e.annotation) LIKE UPPER(CONCAT('%', :text, '%')) " +
+            "   OR UPPER(e.description) LIKE UPPER(CONCAT('%', :text, '%'))) " +
+            "AND (:categoriesIds IS NULL OR e.category.id IN :categoriesIds) " +
+            "AND e.eventDateTime >= :startDateTime " +
             "AND e.state = :eventState " +
-            "AND r.status = :requestState " +
             "AND e.isPaid = :isPaid " +
-            "GROUP BY e.id, e.annotation, e.category, e.createdOn, e.description, e.eventDateTime," +
-            " e.ownerId, e.location, e.isPaid, e.participantLimit, e.publishedOn, e.isModerated," +
-            " e.state, e.title " +
-            "HAVING COUNT(r.status) < e.participantLimit ")
+            "GROUP BY e.id " +
+            "HAVING COUNT(r) < e.participantLimit")
     Page<Event> findAllAvailablePublishedEventsByCategoryAndStateAfterDate(String text, Instant startDateTime,
                                                                            List<Long> categoriesIds, Pageable pageable,
                                                                            EventState eventState,
@@ -67,19 +63,15 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     @Query(" SELECT e " +
             "FROM Event e " +
-            "JOIN ParticipationRequest r ON e.id = r.eventId " +
-            "WHERE (UPPER(e.annotation) LIKE UPPER(CONCAT('%', :text, '%')) " +
-            "OR UPPER(e.description)  LIKE UPPER(concat('%', :text, '%')) " +
-            "OR :text is null) " +
-            "AND (e.category.id IN :categoriesIds)" +
+            "LEFT JOIN ParticipationRequest r ON e.id = r.eventId AND r.status = :requestState " +
+            "WHERE (:text IS NULL OR UPPER(e.annotation) LIKE UPPER(CONCAT('%', :text, '%')) " +
+            "   OR UPPER(e.description) LIKE UPPER(CONCAT('%', :text, '%'))) " +
+            "AND (:categoriesIds IS NULL OR e.category.id IN :categoriesIds) " +
             "AND e.eventDateTime BETWEEN :startDateTime AND :endDateTime " +
             "AND e.state = :eventState " +
-            "AND r.status = :requestState " +
             "AND e.isPaid = :isPaid " +
-            "GROUP BY e.id, e.annotation, e.category, e.createdOn, e.description, e.eventDateTime," +
-            " e.ownerId, e.location, e.isPaid, e.participantLimit, e.publishedOn, e.isModerated," +
-            " e.state, e.title " +
-            "HAVING COUNT(r.status) < e.participantLimit ")
+            "GROUP BY e.id " +
+            "HAVING COUNT(r) < e.participantLimit")
     Page<Event> findAllAvailablePublishedEventsByCategoryAndStateBetweenDates(String text, Instant startDateTime,
                                                                               Instant endDateTime,
                                                                               List<Long> categoriesIds,
