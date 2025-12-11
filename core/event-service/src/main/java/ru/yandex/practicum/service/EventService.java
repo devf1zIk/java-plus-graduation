@@ -10,7 +10,6 @@ import ru.yandex.practicum.client.StatsClient;
 import ru.yandex.practicum.client.request.RequestClient;
 import ru.yandex.practicum.client.user.UserClient;
 import ru.yandex.practicum.dto.event.*;
-import ru.yandex.practicum.dto.user.UserDto;
 import ru.yandex.practicum.dto.user.UserShortDto;
 import ru.yandex.practicum.enums.AdminEventAction;
 import ru.yandex.practicum.enums.EventState;
@@ -255,12 +254,11 @@ public class EventService {
         if (onlyAvailable) {
             if (rangeStart == null || rangeEnd == null) {
                 events = eventRepository.findAllAvailablePublishedEventsByCategoryAndStateAfterDate(text,
-                        now().toInstant(ZoneOffset.UTC), categories, paging, EventState.PUBLISHED,
-                        RequestStatus.CONFIRMED, paid);
+                        now().toInstant(ZoneOffset.UTC), categories, paging, EventState.PUBLISHED, paid);
             } else {
                 events = eventRepository.findAllAvailablePublishedEventsByCategoryAndStateBetweenDates(text,
                         rangeStart.toInstant(ZoneOffset.UTC), rangeEnd.toInstant(ZoneOffset.UTC), categories, paging,
-                        EventState.PUBLISHED, RequestStatus.CONFIRMED, paid);
+                        EventState.PUBLISHED, paid);
             }
         } else {
             if (rangeStart == null || rangeEnd == null) {
