@@ -41,7 +41,7 @@ feign:
 logging:
   level:
     root: INFO
-    ru.yandex.practicum.explorewithme.event: DEBUG
+    ru.yandex.practicum.explorewithme.user: DEBUG
     "org.springframework.orm.jpa": INFO
     "org.springframework.transaction": INFO
     "org.hibernate.SQL": DEBUG

@@ -16,8 +16,8 @@ import java.util.List;
 public interface EventRepository extends JpaRepository<Event, Long> {
 
     @Query("SELECT p " +
-            "FROM ParticipationRequest p " +
-            "WHERE p.eventId IN :events AND p.status = :status")
+            "FROM Event p " +
+            "WHERE p.id IN :events AND p.state = :status")
     List<Event> findAllByEventInAndStatus(List<Long> eventId, RequestStatus status);
 
     Page<Event> findAllByOwner(Long userId, Pageable pageable);

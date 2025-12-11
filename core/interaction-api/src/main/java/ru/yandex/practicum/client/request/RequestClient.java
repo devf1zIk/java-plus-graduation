@@ -8,7 +8,7 @@ import ru.yandex.practicum.dto.request.RequestStatusUpdateResponse;
 import java.util.List;
 import java.util.Map;
 
-@FeignClient(name = "request-service", path = "/users", fallback = RequestClientFallback.class)
+@FeignClient(name = "request-service", fallback = RequestClientFallback.class)
 public interface RequestClient extends RequestOperations {
 
     @PostMapping("/{userId}/requests")
@@ -27,7 +27,7 @@ public interface RequestClient extends RequestOperations {
                                       @PathVariable("eventId") Long eventId);
 
     @Override
-    @GetMapping("/admin/requests/count")
+    @GetMapping("/admin/requests/count/{eventId}")
     Map<Long, Long> getConfirmedRequestsCount(@RequestParam("ids") List<Long> eventIds);
 
 
