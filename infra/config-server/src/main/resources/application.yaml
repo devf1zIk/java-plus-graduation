@@ -11,7 +11,10 @@ spring:
       server:
         native:
           search-locations:
-            - classpath:config/core/{application}
+            - classpath:config/event-service/{application}
+            - classpath:config/comment-service/{application}
+            - classpath:config/request-service/{application}
+            - classpath:config/user-service/{application}
             - classpath:config/stats-service/{application}
             - classpath:config/infra/{application}
       fail-fast: true
