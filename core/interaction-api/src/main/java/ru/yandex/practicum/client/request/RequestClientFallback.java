@@ -3,6 +3,7 @@ package ru.yandex.practicum.client.request;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.dto.request.RequestDto;
+import ru.yandex.practicum.enums.RequestStatus;
 import java.util.List;
 import java.util.Map;
 
@@ -11,8 +12,9 @@ import java.util.Map;
 public class RequestClientFallback implements RequestOperations {
 
     @Override
-    public Map<Long, Long> getConfirmedRequestsCount(List<Long> eventIds) {
-        log.warn("Request service unavailable → getConfirmedRequestsCount: eventIds={}", eventIds);
+    public Map<Long, Long> getConfirmedRequestsCount(List<Long> eventIds, RequestStatus status) {
+        log.warn("Request service unavailable → getConfirmedRequestsCount: eventIds={},status={}", eventIds,status);
+
         return Map.of();
     }
 

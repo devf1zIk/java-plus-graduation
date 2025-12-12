@@ -26,6 +26,8 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
+
 import static java.time.LocalDateTime.now;
 
 @Service
@@ -121,43 +123,42 @@ public class EventService {
         return getEventDtoFromEvent(updatedEvent);
     }
 
-
     public List<EventDto> getAll(List<Long> users, List<String> states, List<Long> categories,
                                  LocalDateTime rangeStart, LocalDateTime rangeEnd, Pageable pageable) {
         List<EventState> eventStates = new ArrayList<>();
         if (states != null) {
             for (String state : states) {
+                if (!state.equals(EventState.PUBLISHED.toString()) &&
+                        !state.equals(EventState.CANCELED.toString()) &&
+                        !state.equals(EventState.PENDING.toString())) {
+                    throw new BadRequestException("Неверный статус события: " + state);
+                }
                 eventStates.add(EventState.valueOf(state));
             }
-        } else {
-            eventStates = null;
         }
 
-        if (states != null) {
-            for (String state : states) {
-                if (!state.equals(EventState.PUBLISHED.toString()) && !state.equals(EventState.CANCELED.toString()) &&
-                        !state.equals(EventState.PENDING.toString())) {
-                    throw new BadRequestException("Неверный статус события");
-                }
-            }
-        }
         List<Long> categoriesIds;
         if (categories == null || categories.isEmpty()) {
-            categoriesIds = categoryRepository.findAll().stream().map(EventCategory::getId).toList();
+            categoriesIds = categoryRepository.findAll().stream()
+                    .map(EventCategory::getId)
+                    .collect(Collectors.toList());
         } else {
             categoriesIds = categories;
         }
         Page<Event> events;
         if (rangeStart == null || rangeEnd == null) {
-            events = eventRepository.findAllEventsAfterDateForUsersByStateAndCategories(users, eventStates,
-                    categoriesIds, now().toInstant(ZoneOffset.UTC), pageable);
-
+            events = eventRepository.findAllEventsAfterDateForUsersByStateAndCategories(
+                    users, eventStates, categoriesIds,
+                    now().toInstant(ZoneOffset.UTC), pageable);
         } else {
-            events = eventRepository.findAllEventsBetweenDatesForUsersByStateAndCategories(users, eventStates,
-                    categoriesIds, rangeStart.toInstant(ZoneOffset.UTC), rangeEnd.toInstant(ZoneOffset.UTC), pageable);
+            events = eventRepository.findAllEventsBetweenDatesForUsersByStateAndCategories(
+                    users, eventStates, categoriesIds,
+                    rangeStart.toInstant(ZoneOffset.UTC),
+                    rangeEnd.toInstant(ZoneOffset.UTC),
+                    pageable);
         }
 
-        return getEventsFulls(events.stream().toList());
+        return getEventsFulls(events.getContent());
     }
 
     public EventDto getById(Long eventId) {
@@ -233,45 +234,48 @@ public class EventService {
     }
 
     public List<EventShortDto> getAllShort(String text, List<Long> categories, Boolean paid,
-                                           LocalDateTime rangeStart, LocalDateTime rangeEnd, boolean onlyAvailable,
-                                           String sort, int from, int size) {
+                                           LocalDateTime rangeStart, LocalDateTime rangeEnd,
+                                           boolean onlyAvailable, String sort, int from, int size) {
+
         Page<Event> events;
         Pageable paging;
-        if (sort == null) {
-            paging = PageRequest.of(from, size);
+
+        if (sort == null || sort.isBlank()) {
+            paging = PageRequest.of(from / size, size);
         } else {
-            if (sort.equals("VIEWS") || sort.equals("EVENT_DATE") || sort.isBlank()) {
-                if (sort.equals("EVENT_DATE")) {
-                    paging = PageRequest.of((from) % size, size, Sort.by("eventDateTime")
-                            .descending());
-                } else {
-                    paging = PageRequest.of(from, size);
-                }
+            if (sort.equals("EVENT_DATE")) {
+                paging = PageRequest.of(from / size, size, Sort.by("eventDateTime").descending());
+            } else if (sort.equals("VIEWS")) {
+                paging = PageRequest.of(from / size, size, Sort.by("views").descending());
             } else {
-                throw new ConflictException("Неверная сортировка. Используй VIEW or EVENT_DATE");
+                throw new ConflictException("Неверная сортировка. Используйте VIEWS или EVENT_DATE");
             }
         }
         if (onlyAvailable) {
             if (rangeStart == null || rangeEnd == null) {
-                events = eventRepository.findAllAvailablePublishedEventsByCategoryAndStateAfterDate(text,
-                        now().toInstant(ZoneOffset.UTC), categories, paging, EventState.PUBLISHED, paid);
+                events = eventRepository.findAllAvailablePublishedEventsByCategoryAndStateAfterDate(
+                        text, now().toInstant(ZoneOffset.UTC),
+                        categories, paging, EventState.PUBLISHED, paid);
             } else {
-                events = eventRepository.findAllAvailablePublishedEventsByCategoryAndStateBetweenDates(text,
-                        rangeStart.toInstant(ZoneOffset.UTC), rangeEnd.toInstant(ZoneOffset.UTC), categories, paging,
-                        EventState.PUBLISHED, paid);
+                events = eventRepository.findAllAvailablePublishedEventsByCategoryAndStateBetweenDates(
+                        text, rangeStart.toInstant(ZoneOffset.UTC),
+                        rangeEnd.toInstant(ZoneOffset.UTC),
+                        categories, paging, EventState.PUBLISHED, paid);
             }
         } else {
             if (rangeStart == null || rangeEnd == null) {
-                events = eventRepository.findAllEventsWithStatusAfterDate(text, now().toInstant(ZoneOffset.UTC),
+                events = eventRepository.findAllEventsWithStatusAfterDate(
+                        text, now().toInstant(ZoneOffset.UTC),
                         categories, EventState.PUBLISHED, paging, paid);
             } else {
-                events = eventRepository.findAllEventsWithStatusBetweenDates(text,
-                        rangeStart.toInstant(ZoneOffset.UTC), rangeEnd.toInstant(ZoneOffset.UTC), categories,
-                        EventState.PUBLISHED, paging, paid);
+                events = eventRepository.findAllEventsWithStatusBetweenDates(
+                        text, rangeStart.toInstant(ZoneOffset.UTC),
+                        rangeEnd.toInstant(ZoneOffset.UTC),
+                        categories, EventState.PUBLISHED, paging, paid);
             }
         }
 
-        return getEventsShorts(events.stream().toList());
+        return getEventsShorts(events.getContent());
     }
 
     public List<EventShortDto> getByUserId(Long userId, Pageable paging) {
@@ -373,26 +377,48 @@ public class EventService {
     }
 
     private List<EventDto> getEventsFulls(List<Event> events) {
-        List<Long> eventIds = getEventsIdFromEventsList(events);
-        Map<Long, Long> confirmedRequestsCountForEvents = requestClient.getConfirmedRequestsCount(eventIds);
-        Map<Long, Integer> viewsMap = getEventsViewsMap(new ArrayList<>(eventIds));
+        if (events == null || events.isEmpty()) {
+            return new ArrayList<>();
+        }
 
-        return events.stream().map(event -> EventMapper.fromEventToEventDto(event,
-                EventCategoryMapper.toCategoryDtoFromCategory(event.getCategory()),
-                userClient.getUser(event.getOwnerId()),
-                confirmedRequestsCountForEvents.getOrDefault(event.getId(), 0L),
-                viewsMap.get(event.getId()))).toList();
+        List<Long> eventIds = events.stream()
+                .map(Event::getId)
+                .collect(Collectors.toList());
+
+        Map<Long, Long> confirmedRequestsCountForEvents = requestClient
+                .getConfirmedRequestsCount(eventIds, RequestStatus.CONFIRMED);
+
+        Map<Long, Integer> viewsMap = getEventsViewsMap(eventIds);
+
+        return events.stream()
+                .map(event -> EventMapper.fromEventToEventDto(event,
+                        EventCategoryMapper.toCategoryDtoFromCategory(event.getCategory()),
+                        userClient.getUser(event.getOwnerId()),
+                        confirmedRequestsCountForEvents.getOrDefault(event.getId(), 0L),
+                        viewsMap.getOrDefault(event.getId(), 0)))
+                .collect(Collectors.toList());
     }
 
     private List<EventShortDto> getEventsShorts(List<Event> events) {
-        List<Long> eventIds = getEventsIdFromEventsList(events);
-        Map<Long, Long> confirmedRequestsCountForEvents = requestClient.getConfirmedRequestsCount(eventIds);
-        Map<Long, Integer> viewsMap = getEventsViewsMap(new ArrayList<>(eventIds));
+        if (events == null || events.isEmpty()) {
+            return new ArrayList<>();
+        }
 
-        return events.stream().map(event -> EventMapper.fromEventToEventShortDto(event,
-                EventCategoryMapper.toCategoryDtoFromCategory(event.getCategory()),
-                userClient.getUser(event.getOwnerId()),
-                confirmedRequestsCountForEvents.getOrDefault(event.getId(), 0L),
-                viewsMap.get(event.getId()))).toList();
+        List<Long> eventIds = events.stream()
+                .map(Event::getId)
+                .collect(Collectors.toList());
+
+        Map<Long, Long> confirmedRequestsCountForEvents = requestClient
+                .getConfirmedRequestsCount(eventIds, RequestStatus.CONFIRMED);
+
+        Map<Long, Integer> viewsMap = getEventsViewsMap(eventIds);
+
+        return events.stream()
+                .map(event -> EventMapper.fromEventToEventShortDto(event,
+                        EventCategoryMapper.toCategoryDtoFromCategory(event.getCategory()),
+                        userClient.getUser(event.getOwnerId()),
+                        confirmedRequestsCountForEvents.getOrDefault(event.getId(), 0L),
+                        viewsMap.getOrDefault(event.getId(), 0)))
+                .collect(Collectors.toList());
     }
 }

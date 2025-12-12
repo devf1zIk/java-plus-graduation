@@ -2,6 +2,7 @@ package ru.yandex.practicum.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.enums.RequestStatus;
 import ru.yandex.practicum.model.ParticipationRequest;
@@ -20,8 +21,6 @@ public interface RequestRepository extends JpaRepository<ParticipationRequest, L
 
     List<ParticipationRequest> findAllByIdIn(List<Long> ids);
 
-    @Query("SELECT p " +
-            "FROM ParticipationRequest p " +
-            "WHERE p.eventId IN :eventIds AND p.status = :status")
-    List<ParticipationRequest> findAllByEventInAndStatus(List<Long> eventId, RequestStatus status);
+    @Query("SELECT p FROM ParticipationRequest p WHERE p.eventId IN :eventIds AND (:status IS NULL OR p.status = :status)")
+    List<ParticipationRequest> findAllByEventInAndStatus(@Param("eventIds") List<Long> eventIds, @Param("status") RequestStatus status);
 }

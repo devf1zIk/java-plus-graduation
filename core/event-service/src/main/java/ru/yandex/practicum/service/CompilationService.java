@@ -10,6 +10,7 @@ import ru.yandex.practicum.client.user.UserClient;
 import ru.yandex.practicum.dto.compilation.CompilationDto;
 import ru.yandex.practicum.dto.compilation.CompilationRequestDto;
 import ru.yandex.practicum.dto.event.EventShortDto;
+import ru.yandex.practicum.enums.RequestStatus;
 import ru.yandex.practicum.exception.model.BadRequestException;
 import ru.yandex.practicum.exception.model.NotFoundException;
 import ru.yandex.practicum.mapper.CompilationMapper;
@@ -183,7 +184,7 @@ public class CompilationService {
     private Set<EventShortDto> getEventsShorts(Set<Event> events) {
         List<Long> eventIds = events.stream().map(Event::getId).toList();
         Map<Long, Long> confirmedRequestsCountForEvents = requestClient
-                .getConfirmedRequestsCount(new ArrayList<>(eventIds));
+                .getConfirmedRequestsCount(eventIds, null);
         Map<Long, Integer> viewsMap = getEventsViewsMap(new ArrayList<>(eventIds));
 
         return events.stream()

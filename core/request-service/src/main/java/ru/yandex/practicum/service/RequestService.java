@@ -17,6 +17,8 @@ import ru.yandex.practicum.model.ParticipationRequest;
 import ru.yandex.practicum.repository.RequestRepository;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
+
 import static ru.yandex.practicum.enums.RequestStatus.*;
 
 @Service
@@ -140,21 +142,19 @@ public class RequestService {
         return RequestMapper.fromRequestTpRequestDto(result);
     }
 
-    public Map<Long, Long> getConfirmedRequestsCountForEvents(List<Long> eventIds) {
-        List<ParticipationRequest> requests = requestRepository.findAllByEventInAndStatus(eventIds,
-                RequestStatus.CONFIRMED);
-        Set<Long> requestsIds = new HashSet<>();
-        for (var request : requests) {
-            requestsIds.add(request.getEventId());
-        }
-        Map<Long, Long> confirmedRequestsCountForEvents = new HashMap<>();
-        for (var id : requestsIds) {
-            int count = (int) requests.stream()
-                    .filter(k -> Objects.equals(k.getEventId(), id)).count();
-            confirmedRequestsCountForEvents.put(id, (long) count);
+    public Map<Long, Long> getConfirmedRequestsCountForEvents(List<Long> eventIds, RequestStatus status) {
+        if (eventIds == null || eventIds.isEmpty()) {
+            return Collections.emptyMap();
         }
 
-        return confirmedRequestsCountForEvents;
+        List<ParticipationRequest> requests = requestRepository
+                .findAllByEventInAndStatus(eventIds, status);
+
+        return requests.stream()
+                .collect(Collectors.groupingBy(
+                        ParticipationRequest::getEventId,
+                        Collectors.counting()
+                ));
     }
 
     public RequestDto cancelRequestByUser(Long userId, Long requestId) {

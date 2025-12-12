@@ -2,6 +2,7 @@ package ru.yandex.practicum.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.enums.RequestStatus;
 import ru.yandex.practicum.service.RequestService;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +15,7 @@ public class RequestAdminController {
     private final RequestService requestService;
 
     @GetMapping("/count")
-    public Map<Long, Long> getConfirmedRequestsCount(@RequestParam("eventIds") List<Long> eventIds) {
-        return requestService.getConfirmedRequestsCountForEvents(eventIds);
+    public Map<Long, Long> getConfirmedRequestsCount(@PathVariable List<Long> eventId, @PathVariable RequestStatus status) {
+        return requestService.getConfirmedRequestsCountForEvents(eventId, status);
     }
 }
