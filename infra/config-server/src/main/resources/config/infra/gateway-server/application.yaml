@@ -8,29 +8,20 @@ spring:
         - id: event_service_route
           uri: lb://event-service
           predicates:
-            - Path=/events/**,
-            - /categories/**,
-            - /compilations/**,
-            - /admin/events/**,
-            - /admin/categories/**,
-            - /admin/compilations/**,
-            - /users/*/events/**
+            - Path=/events/**,/categories/**,/compilations/**,/admin/events/**,/admin/categories/**,/admin/compilations/**,/users/*/events/**
         - id: comment_service_route
           uri: lb://comment-service
           predicates:
-            - Path=/users/*/comments/**,
-            - /events/*/comments**,
-            - /comments/**
+            - Path=/users/*/comments/**,/events/*/comments/**,/comments/**
         - id: request_service_route
           uri: lb://request-service
           predicates:
-            - Path=/users/{userId}/requests/**,
-            - /users/{userId}/events/{eventId}/requests/**,
-              /admin/requests/**
+            - Path=/users/{userId}/requests/**,/users/{userId}/events/{eventId}/requests/**,/admin/requests/**
         - id: user_service_route
           uri: lb://user-service
           predicates:
-            - Path=/admin/users/**,
+            - Path=/admin/users/**
+
 management:
   endpoint:
     gateway:
