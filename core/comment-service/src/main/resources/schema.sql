@@ -6,5 +6,4 @@ CREATE TABLE IF NOT EXISTS comments (
     author_id  BIGINT                     NOT NULL,
     text       VARCHAR(1000)              NOT NULL,
     created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW()
-    CONSTRAINT pk_comments PRIMARY KEY (id)
 );
