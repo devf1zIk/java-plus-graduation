@@ -15,7 +15,7 @@ public class RequestAdminController {
     private final RequestService requestService;
 
     @GetMapping("/count")
-    public Map<Long, Long> getConfirmedRequestsCount(@PathVariable List<Long> eventId, @PathVariable RequestStatus status) {
-        return requestService.getConfirmedRequestsCountForEvents(eventId, status);
+    public Map<Long, Long> getConfirmedRequestsCount(@RequestParam List<Long> eventIds, @RequestParam RequestStatus status) {
+        return requestService.getConfirmedRequestsCountForEvents(eventIds, status);
     }
 }
