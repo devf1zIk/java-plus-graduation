@@ -276,7 +276,7 @@ public class EventService {
 
     public List<EventShortDto> getByUserId(Long userId, Pageable paging) {
         UserShortDto user = userClient.getUser(userId);
-        List<Event> events = eventRepository.findAllByOwner(user.getId(), paging).stream().toList();
+        List<Event> events = eventRepository.findAllByOwnerId(user.getId(), paging).stream().toList();
 
         return getEventsShorts(events);
     }

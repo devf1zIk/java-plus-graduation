@@ -22,7 +22,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
             "WHERE p.id IN :events AND p.state = :status")
     List<Event> findAllByEventInAndStatus(List<Long> eventId, RequestStatus status);
 
-    Page<Event> findAllByOwner(Long userId, Pageable pageable);
+    Page<Event> findAllByOwnerId(Long userId, Pageable pageable);
 
     List<Event> findAllByCategory(EventCategory category);
 
