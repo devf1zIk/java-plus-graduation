@@ -29,7 +29,6 @@ CREATE TABLE IF NOT EXISTS events (
     owner_id             BIGINT NOT NULL,
     is_paid              BOOLEAN,
     participant_limit    INTEGER,
-    confirm_request      INTEGER,
     published_on         TIMESTAMP WITHOUT TIME ZONE,
     is_moderated         BOOLEAN,
     state                VARCHAR(16)                             NOT NULL,
