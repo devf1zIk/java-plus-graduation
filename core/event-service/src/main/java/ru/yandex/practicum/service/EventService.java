@@ -352,7 +352,7 @@ public class EventService {
     }
 
     private EventDto getEventDtoFromEvent(Event event) {
-        long confirmedRequests = eventRepository.findAllByIdInAndState(Collections.singletonList(event.getId()), RequestStatus.CONFIRMED).size();
+        long confirmedRequests = eventRepository.findAllByEventInAndStatus(Collections.singletonList(event.getId()), RequestStatus.CONFIRMED).size();
         Integer views = getEventsViews(event.getId());
 
         return EventMapper.fromEventToEventDto(event,
