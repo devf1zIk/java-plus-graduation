@@ -8,7 +8,6 @@ import ru.yandex.practicum.dto.event.EventDto;
 import ru.yandex.practicum.dto.request.RequestDto;
 import ru.yandex.practicum.dto.request.RequestStatusUpdateRequest;
 import ru.yandex.practicum.dto.request.RequestStatusUpdateResponse;
-import ru.yandex.practicum.dto.user.UserDto;
 import ru.yandex.practicum.dto.user.UserShortDto;
 import ru.yandex.practicum.enums.RequestStatus;
 import ru.yandex.practicum.exception.model.ConflictException;
@@ -18,7 +17,6 @@ import ru.yandex.practicum.model.ParticipationRequest;
 import ru.yandex.practicum.repository.RequestRepository;
 import java.time.LocalDateTime;
 import java.util.*;
-
 import static ru.yandex.practicum.enums.RequestStatus.*;
 
 @Service
@@ -41,7 +39,7 @@ public class RequestService {
         if (!Objects.equals(eventDto.getInitiator().getId(), userId)) {
             throw new NotFoundException("User c id " + userId + " не хозяин для события " + eventId);
         }
-        List<ParticipationRequest> result = requestRepository.findByEvent(eventId);
+        List<ParticipationRequest> result = requestRepository.findByEventId(eventId);
 
         return result.stream().map(RequestMapper::fromRequestTpRequestDto).toList();
     }
@@ -59,7 +57,7 @@ public class RequestService {
         if (pendingRequests.isEmpty()) {
             throw new ConflictException("Запрос не найден");
         }
-        long confirmedRequestsCount = requestRepository.findAllByEventAndStatus(eventId, CONFIRMED).size();
+        long confirmedRequestsCount = requestRepository.findAllByEventIdAndStatus(eventId, CONFIRMED).size();
         if (!eventDto.getRequestModeration() || eventDto.getParticipantLimit() == 0) {
             requests.forEach(req -> req.setStatus(CONFIRMED));
             result.getConfirmedRequests().addAll(requests.stream()
@@ -81,7 +79,7 @@ public class RequestService {
             result.setConfirmedRequests(confirmed);
 
             List<ParticipationRequest> otherPendingRequests = requestRepository
-                    .findAllByEventAndStatus(eventDto.getId(), PENDING);
+                    .findAllByEventIdAndStatus(eventDto.getId(), PENDING);
             otherPendingRequests.forEach(req -> req.setStatus(REJECTED));
             requestRepository.saveAll(otherPendingRequests);
             rejected.addAll(otherPendingRequests.stream().map(RequestMapper::fromRequestTpRequestDto).toList());
@@ -105,7 +103,7 @@ public class RequestService {
     }
 
     public List<RequestDto> getByUserId(Long userId) {
-        List<ParticipationRequest> result = requestRepository.findAllByRequester(userClient.getUser(userId).getId());
+        List<ParticipationRequest> result = requestRepository.findAllByRequesterId(userClient.getUser(userId).getId());
 
         return result.stream().map(RequestMapper::fromRequestTpRequestDto).toList();
 
@@ -121,12 +119,12 @@ public class RequestService {
             throw new ConflictException("Событие с id " + eventId + " еще не опубликовано");
         }
 
-        long confirmedRequestsCount = requestRepository.findAllByEventAndStatus(eventDto.getId(), CONFIRMED).size();
+        long confirmedRequestsCount = requestRepository.findAllByEventIdAndStatus(eventDto.getId(), CONFIRMED).size();
         if (confirmedRequestsCount == eventDto.getParticipantLimit() && eventDto.getParticipantLimit() > 0) {
             throw new ConflictException(
                     "Лимит участников для события " + eventId + " превышен");
         }
-        if (!requestRepository.findAllByEventAndRequester(eventId, userId).isEmpty()) {
+        if (!requestRepository.findAllByEventIdAndRequesterId(eventId, userId).isEmpty()) {
             throw new ConflictException("Запрос на участие в событии " + eventId +
                     " уже существует для пользователя с id " + userId);
         }

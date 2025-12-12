@@ -10,18 +10,18 @@ import java.util.List;
 @Repository
 public interface RequestRepository extends JpaRepository<ParticipationRequest, Long> {
 
-    List<ParticipationRequest> findByEvent(Long eventId);
+    List<ParticipationRequest> findByEventId(Long eventId);
 
-    List<ParticipationRequest> findAllByRequester(Long requesterId);
+    List<ParticipationRequest> findAllByRequesterId(Long requesterId);
 
-    List<ParticipationRequest> findAllByEventAndRequester(Long eventId, Long requesterId);
+    List<ParticipationRequest> findAllByEventIdAndRequesterId(Long eventId, Long requesterId);
 
-    List<ParticipationRequest> findAllByEventAndStatus(Long eventId, RequestStatus status);
+    List<ParticipationRequest> findAllByEventIdAndStatus(Long eventId, RequestStatus status);
 
     List<ParticipationRequest> findAllByIdIn(List<Long> ids);
 
     @Query("SELECT p " +
             "FROM ParticipationRequest p " +
-            "WHERE p.eventId IN :events AND p.status = :status")
+            "WHERE p.eventId IN :eventIds AND p.status = :status")
     List<ParticipationRequest> findAllByEventInAndStatus(List<Long> eventId, RequestStatus status);
 }
