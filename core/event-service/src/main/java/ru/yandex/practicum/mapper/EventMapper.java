@@ -32,7 +32,6 @@ public class EventMapper {
                 now().toInstant(ZoneOffset.UTC),
                 newEventDto.getEventDate().toInstant(ZoneOffset.UTC),
                 ownerId,
-                0L,
                 location,
                 newEventDto.getPaid(),
                 newEventDto.getParticipantLimit(),
