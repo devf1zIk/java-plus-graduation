@@ -11,7 +11,7 @@ public class RequestClientFallback implements RequestOperations {
 
     @Override
     public Map<Long, Long> getConfirmedRequestsCount(List<Long> eventIds) {
-        log.warn("Request service unavailable → getConfirmedRequestsCount: userId={}, requestId={}", eventIds);
+        log.warn("Request service unavailable → getConfirmedRequestsCount: eventIds={}", eventIds);
         return Map.of();
     }
 }
