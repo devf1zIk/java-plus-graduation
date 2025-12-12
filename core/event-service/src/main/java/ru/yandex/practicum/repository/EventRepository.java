@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.enums.EventState;
 import ru.yandex.practicum.enums.RequestStatus;
@@ -17,10 +18,10 @@ import java.util.List;
 @Repository
 public interface EventRepository extends JpaRepository<Event, Long> {
 
-    @Query("SELECT p " +
-            "FROM Event p " +
-            "WHERE p.id IN :events AND p.state = :status")
-    List<Event> findAllByEventInAndStatus(List<Long> eventId, RequestStatus status);
+    @Query("SELECT p FROM Event p WHERE p.id IN :eventIds AND p.state = :status")
+    List<Event> findAllByEventInAndStatus(@Param("eventIds") List<Long> eventIds,
+                                          @Param("status") RequestStatus status);
+
 
     Page<Event> findAllByOwnerId(Long userId, Pageable pageable);
 
