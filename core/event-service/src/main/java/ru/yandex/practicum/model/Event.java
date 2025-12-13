@@ -22,8 +22,12 @@ public class Event {
     private Long id;
     @Size(min = 1, max = 120)
     private String title;
+
+    @Column(columnDefinition = "TEXT")
     @Size(min = 20, max = 2000)
     private String annotation;
+
+    @Column(columnDefinition = "TEXT")
     @Size(min = 20, max = 7000)
     private String description;
     @ManyToOne(fetch = FetchType.EAGER)
