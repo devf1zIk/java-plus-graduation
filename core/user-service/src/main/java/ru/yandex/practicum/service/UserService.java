@@ -33,11 +33,11 @@ public class UserService {
         }
     }
 
-    public UserShortDto getById(long userId) {
+    public UserShortDto getUser(Long userId) {
         return UserMapper.fromUserToUserShortDto(getUserIfExist(userId));
     }
 
-    public UserDto create(UserDto userDto) {
+    public UserDto addUser(UserDto userDto) {
         Optional<User> userWithSameName = userRepository.findByName(userDto.getName());
         if (userWithSameName.isPresent()) {
             throw new ConflictException("User " + userDto.getName() + " уже существует!");
@@ -46,11 +46,11 @@ public class UserService {
         return UserMapper.toUserDtoFromUser(userRepository.save(UserMapper.toUserFromUserDto(userDto)));
     }
 
-    public void delete(long userId) {
+    public void deleteUser(Long userId) {
         userRepository.delete(getUserIfExist(userId));
     }
 
-    public User getUserIfExist(long userId) {
+    public User getUserIfExist(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User c id" + userId + " не существует!"));
     }

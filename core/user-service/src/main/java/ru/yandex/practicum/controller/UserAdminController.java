@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.client.user.UserOperations;
 import ru.yandex.practicum.dto.user.UserDto;
 import ru.yandex.practicum.dto.user.UserShortDto;
 import ru.yandex.practicum.service.UserService;
@@ -14,7 +15,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping(path = "/admin/users")
-public class UserAdminController {
+public class UserAdminController implements UserOperations {
 
     private final UserService userService;
 
@@ -25,13 +26,13 @@ public class UserAdminController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public UserDto create(@RequestBody @Valid UserDto userDto) {
-        return userService.create(userDto);
+    public UserDto addUser(@RequestBody @Valid UserDto userDto) {
+        return userService.addUser(userDto);
     }
 
-    @GetMapping("/{id}")
-    public UserShortDto getUser(@PathVariable("id") long id) {
-        return userService.getById(id);
+    @GetMapping("/{userId}")
+    public UserShortDto getUser(@PathVariable("userId") Long userId) {
+        return userService.getUser(userId);
     }
 
     @GetMapping
@@ -41,9 +42,9 @@ public class UserAdminController {
         return userService.getAll(usersIds, PageRequest.of(from, size));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteUser(@PathVariable("id") long id) {
-        userService.delete(id);
+    public void deleteUser(@PathVariable Long userId) {
+        userService.deleteUser(userId);
     }
 }

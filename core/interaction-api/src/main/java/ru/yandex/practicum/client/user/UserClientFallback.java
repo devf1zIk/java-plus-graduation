@@ -9,7 +9,7 @@ import ru.yandex.practicum.dto.user.UserShortDto;
 public class UserClientFallback implements UserOperations{
 
     @Override
-    public UserShortDto getUser(long userId) {
+    public UserShortDto getUser(Long userId) {
         log.error("User service unavailable → getById: {}", userId);
         return null;
     }
