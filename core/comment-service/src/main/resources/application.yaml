@@ -1,6 +1,8 @@
 spring:
   application:
     name: comment-service
+  main:
+    allow-bean-definition-overriding: true
   config:
     import: "configserver:"
   cloud:
