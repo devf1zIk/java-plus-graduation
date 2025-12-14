@@ -11,7 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.client.StatsClient;
 import ru.yandex.practicum.dto.HitDto;
-import ru.yandex.practicum.dto.event.CreateNewEventDto;
+import ru.yandex.practicum.dto.event.NewEventDto;
 import ru.yandex.practicum.dto.event.EventDto;
 import ru.yandex.practicum.dto.event.EventShortDto;
 import ru.yandex.practicum.dto.event.UpdateEventUserRequest;
@@ -37,7 +37,7 @@ public class EventPrivateController {
                                              @PositiveOrZero @RequestParam(value = "from", defaultValue = "0") int from,
                                              @Positive @RequestParam(value = "size", defaultValue = "10") int size,
                                              HttpServletRequest request) {
-        Pageable paging = PageRequest.of(from, size);
+        Pageable paging = PageRequest.of(from / size, size);
         statClient.create(new HitDto(request.getRemoteAddr(), "main-service", "/events", LocalDateTime.now()));
 
         return eventService.getByUserId(userId, paging);
@@ -45,7 +45,7 @@ public class EventPrivateController {
 
     @PostMapping("/{userId}/events")
     @ResponseStatus(HttpStatus.CREATED)
-    public EventDto createEvent(@RequestBody @Valid CreateNewEventDto newEventDto, @PathVariable Long userId) {
+    public EventDto createEvent(@RequestBody @Valid NewEventDto newEventDto, @PathVariable Long userId) {
 
         return eventService.create(newEventDto, userId);
     }

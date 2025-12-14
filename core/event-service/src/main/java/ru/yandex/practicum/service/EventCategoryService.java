@@ -3,7 +3,7 @@ package ru.yandex.practicum.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.dto.event.EventCategoryDto;
+import ru.yandex.practicum.dto.event.CategoryDto;
 import ru.yandex.practicum.exception.model.ConflictException;
 import ru.yandex.practicum.exception.model.NotFoundException;
 import ru.yandex.practicum.mapper.EventCategoryMapper;
@@ -21,35 +21,35 @@ public class EventCategoryService {
     private final EventCategoryRepository categoryRepository;
     private final EventRepository eventRepository;
 
-    public List<EventCategoryDto> getAll(Pageable pageable) {
+    public List<CategoryDto> getAll(Pageable pageable) {
         return categoryRepository.findAll(pageable).stream()
                 .map(EventCategoryMapper::toCategoryDtoFromCategory).toList();
     }
 
-    public EventCategoryDto getById(long catId) {
+    public CategoryDto getById(long catId) {
         EventCategory category = getCategoryIfExist(catId);
         return EventCategoryMapper.toCategoryDtoFromCategory(category);
     }
 
-    public EventCategoryDto update(long catId, EventCategoryDto eventCategoryDto) {
+    public CategoryDto update(long catId, CategoryDto categoryDto) {
         EventCategory categoryToUpdate = getCategoryIfExist(catId);
-        Optional<EventCategory> categoryWithSameName = categoryRepository.findByName(eventCategoryDto.getName());
+        Optional<EventCategory> categoryWithSameName = categoryRepository.findByName(categoryDto.getName());
         if (categoryWithSameName.isPresent() && !categoryWithSameName.get().getId().equals(categoryToUpdate.getId())) {
-            throw new ConflictException("Категория " + eventCategoryDto.getName() + " уже существует!");
+            throw new ConflictException("Категория " + categoryDto.getName() + " уже существует!");
         }
-        categoryToUpdate.setName(eventCategoryDto.getName());
+        categoryToUpdate.setName(categoryDto.getName());
         EventCategory updatedCategory = categoryRepository.save(categoryToUpdate);
 
         return EventCategoryMapper.toCategoryDtoFromCategory(updatedCategory);
     }
 
-    public EventCategoryDto create(EventCategoryDto eventCategoryDto) {
-        Optional<EventCategory> categoryWithSameName = categoryRepository.findByName(eventCategoryDto.getName());
+    public CategoryDto create(CategoryDto categoryDto) {
+        Optional<EventCategory> categoryWithSameName = categoryRepository.findByName(categoryDto.getName());
         if (categoryWithSameName.isPresent()) {
-            throw new ConflictException("Категория " + eventCategoryDto.getName() + " уже существует!");
+            throw new ConflictException("Категория " + categoryDto.getName() + " уже существует!");
         }
 
-        EventCategory category = categoryRepository.save(EventCategoryMapper.toCategoryFromCategoryDto(eventCategoryDto));
+        EventCategory category = categoryRepository.save(EventCategoryMapper.toCategoryFromCategoryDto(categoryDto));
         return EventCategoryMapper.toCategoryDtoFromCategory(category);
     }
 

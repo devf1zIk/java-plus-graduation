@@ -4,7 +4,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.dto.event.EventCategoryDto;
+import ru.yandex.practicum.dto.event.CategoryDto;
 import ru.yandex.practicum.service.EventCategoryService;
 
 @RestController
@@ -18,15 +18,15 @@ public class EventCategoryAdminController {
     }
 
     @PatchMapping("/{catId}")
-    public EventCategoryDto update(@RequestBody @Valid EventCategoryDto eventCategoryDto,
-                                   @PathVariable Long catId) {
-        return categoryService.update(catId, eventCategoryDto);
+    public CategoryDto update(@RequestBody @Valid CategoryDto categoryDto,
+                              @PathVariable Long catId) {
+        return categoryService.update(catId, categoryDto);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public EventCategoryDto create(@RequestBody @Valid EventCategoryDto eventCategoryDto) {
-        return categoryService.create(eventCategoryDto);
+    public CategoryDto create(@RequestBody @Valid CategoryDto categoryDto) {
+        return categoryService.create(categoryDto);
     }
 
     @DeleteMapping("/{catId}")

@@ -10,8 +10,11 @@ import java.util.Set;
 @AllArgsConstructor
 @RequiredArgsConstructor
 public class CompilationRequestDto {
-    private Set<Long> events;
-    private Boolean pinned;
+
+    Set<Long> events;
+
+    Boolean pinned;
+
     @Size(max = 50)
-    private String title;
+    String title;
 }

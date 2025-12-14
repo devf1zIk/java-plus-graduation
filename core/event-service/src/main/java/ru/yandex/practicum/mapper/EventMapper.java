@@ -1,11 +1,10 @@
 package ru.yandex.practicum.mapper;
 
 import lombok.NoArgsConstructor;
-import ru.yandex.practicum.dto.event.CreateNewEventDto;
-import ru.yandex.practicum.dto.event.EventCategoryDto;
+import ru.yandex.practicum.dto.event.NewEventDto;
+import ru.yandex.practicum.dto.event.CategoryDto;
 import ru.yandex.practicum.dto.event.EventDto;
 import ru.yandex.practicum.dto.event.EventShortDto;
-import ru.yandex.practicum.dto.user.UserDto;
 import ru.yandex.practicum.dto.user.UserShortDto;
 import ru.yandex.practicum.enums.EventState;
 import ru.yandex.practicum.model.Event;
@@ -20,7 +19,7 @@ import static java.time.LocalDateTime.ofInstant;
 public class EventMapper {
 
 
-    public static Event fromCreateNewEventDtoToEvent(CreateNewEventDto newEventDto, Long ownerId,
+    public static Event fromCreateNewEventDtoToEvent(NewEventDto newEventDto, Long ownerId,
                                                      EventCategory category) {
         Location location = LocationMapper.location(newEventDto.getLocation());
 
@@ -40,11 +39,11 @@ public class EventMapper {
                 EventState.PENDING);
     }
 
-    public static EventDto fromEventToEventDto(Event event, EventCategoryDto eventCategoryDto, UserShortDto owner,
+    public static EventDto fromEventToEventDto(Event event, CategoryDto categoryDto, UserShortDto owner,
                                                Long confirmedRequests, Integer views) {
         EventDto eventDto = new EventDto(event.getId(),
                 event.getAnnotation(),
-                eventCategoryDto,
+                categoryDto,
                 confirmedRequests,
                 ofInstant(event.getCreatedOn(), ZoneId.of("UTC")),
                 event.getDescription(),
@@ -65,11 +64,11 @@ public class EventMapper {
         return eventDto;
     }
 
-    public static EventShortDto fromEventToEventShortDto(Event event, EventCategoryDto eventCategoryDto, UserShortDto owner,
+    public static EventShortDto fromEventToEventShortDto(Event event, CategoryDto categoryDto, UserShortDto owner,
                                                          Long confirmedRequests, Integer views) {
         return new EventShortDto(event.getId(),
                 event.getAnnotation(),
-                eventCategoryDto,
+                categoryDto,
                 confirmedRequests,
                 ofInstant(event.getEventDateTime(), ZoneId.of("UTC")),
                 owner,

@@ -21,7 +21,7 @@ public class EventDto {
     @NotBlank
     @Size(min = 20, max = 2000)
     private String annotation;
-    private EventCategoryDto category;
+    private CategoryDto category;
     private Long confirmedRequests;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdOn;

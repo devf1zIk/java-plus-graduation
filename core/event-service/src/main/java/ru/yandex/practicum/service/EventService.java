@@ -41,7 +41,7 @@ public class EventService {
     private final RequestClient requestClient;
     private final StatsClient statsClient;
 
-    public EventDto create(CreateNewEventDto eventDto, Long userId) {
+    public EventDto create(NewEventDto eventDto, Long userId) {
         UserShortDto ownerId = userClient.getUser(userId);
         EventCategory category = categoryRepository.findById(eventDto.getCategory())
                 .orElseThrow(() -> new NotFoundException(

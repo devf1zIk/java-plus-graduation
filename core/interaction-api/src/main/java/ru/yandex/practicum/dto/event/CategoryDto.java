@@ -9,10 +9,10 @@ import lombok.RequiredArgsConstructor;
 @Data
 @AllArgsConstructor
 @RequiredArgsConstructor
-public class EventCategoryDto {
-    private Long id;
+public class CategoryDto {
+    Long id;
     @NotBlank
     @Size(max = 50)
-    private String name;
+    String name;
 
 }
