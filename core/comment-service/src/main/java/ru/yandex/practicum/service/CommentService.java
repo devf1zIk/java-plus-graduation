@@ -41,7 +41,7 @@ public class CommentService {
 
         Comment comment = commentMapper.requestToComment(mergeCommentRequest, event.getId(), userId);
         CommentDto response = commentMapper.commentToResponse(commentRepository.save(comment));
-        log.info("Comment id={} was created by user id={}", response.getId(), response.getAuthor().getId());
+        log.info("Comment id={} was created by user id={}", response.getId(), response.getAuthorId());
         return response;
     }
 
@@ -67,7 +67,7 @@ public class CommentService {
                 oldComment);
 
         CommentDto response = commentMapper.commentToResponse(commentRepository.save(oldComment));
-        log.info("Comment id={} was updated by user id={}", response.getId(), response.getAuthor().getId());
+        log.info("Comment id={} was updated by user id={}", response.getId(), response.getAuthorId());
         return response;
     }
 
