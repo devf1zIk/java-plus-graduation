@@ -55,7 +55,7 @@ public class EventService {
         if (event.getLocation().getLat() != null && event.getLocation().getLon() != null) {
             event.setLocation(saveLocation(event.getLocation()));
         } else {
-            event.setLocation(saveLocation(new Location(-1L, 0.0, 0.0)));
+            event.setLocation(saveLocation(new Location()));
         }
         if (event.getIsPaid() == null) {
             event.setIsPaid(false);

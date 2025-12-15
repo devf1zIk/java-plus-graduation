@@ -12,7 +12,6 @@ public class LocationMapper {
 
     public static Location location(LocationDto locationDto) {
         return new Location(
-                locationDto.getId(),
                 locationDto.getLon(),
                 locationDto.getLat()
         );
@@ -20,7 +19,6 @@ public class LocationMapper {
 
     public static LocationDto locationDto(Location location) {
         return new LocationDto(
-                location.getId(),
                 location.getLon(),
                 location.getLat()
         );
