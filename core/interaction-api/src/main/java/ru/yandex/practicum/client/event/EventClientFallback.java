@@ -9,7 +9,7 @@ import ru.yandex.practicum.dto.event.*;
 public class EventClientFallback implements EventOperations{
 
     @Override
-    public EventDto getPublicEvent(Long eventId) {
+    public EventFullDto getPublicEvent(Long eventId) {
         log.warn("Event service unavailable → getPublicEvent({})", eventId);
         return null;
     }

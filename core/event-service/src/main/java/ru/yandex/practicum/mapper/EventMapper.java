@@ -3,7 +3,7 @@ package ru.yandex.practicum.mapper;
 import lombok.NoArgsConstructor;
 import ru.yandex.practicum.dto.event.NewEventDto;
 import ru.yandex.practicum.dto.event.CategoryDto;
-import ru.yandex.practicum.dto.event.EventDto;
+import ru.yandex.practicum.dto.event.EventFullDto;
 import ru.yandex.practicum.dto.event.EventShortDto;
 import ru.yandex.practicum.dto.user.UserShortDto;
 import ru.yandex.practicum.enums.EventState;
@@ -39,9 +39,9 @@ public class EventMapper {
                 EventState.PENDING);
     }
 
-    public static EventDto fromEventToEventDto(Event event, CategoryDto categoryDto, UserShortDto owner,
-                                               Long confirmedRequests, Integer views) {
-        EventDto eventDto = new EventDto(event.getId(),
+    public static EventFullDto fromEventToEventDto(Event event, CategoryDto categoryDto, UserShortDto owner,
+                                                   Long confirmedRequests, Integer views) {
+        EventFullDto eventFullDto = new EventFullDto(event.getId(),
                 event.getAnnotation(),
                 categoryDto,
                 confirmedRequests,
@@ -59,9 +59,9 @@ public class EventMapper {
                 views
         );
         if (event.getPublishedOn() != null) {
-            eventDto.setPublishedOn(ofInstant(event.getPublishedOn(), ZoneId.of("UTC")));
+            eventFullDto.setPublishedOn(ofInstant(event.getPublishedOn(), ZoneId.of("UTC")));
         }
-        return eventDto;
+        return eventFullDto;
     }
 
     public static EventShortDto fromEventToEventShortDto(Event event, CategoryDto categoryDto, UserShortDto owner,

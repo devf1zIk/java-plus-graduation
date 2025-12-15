@@ -10,7 +10,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.client.StatsClient;
 import ru.yandex.practicum.dto.HitDto;
-import ru.yandex.practicum.dto.event.EventDto;
+import ru.yandex.practicum.dto.event.EventFullDto;
 import ru.yandex.practicum.dto.event.UpdateEventAdminDto;
 import ru.yandex.practicum.service.EventService;
 import java.time.LocalDateTime;
@@ -30,23 +30,23 @@ public class EventAdminController {
 
     //events
     @GetMapping
-    public List<EventDto> getAll(@RequestParam(value = "users", required = false) List<Long> users,
-                                 @RequestParam(value = "states", required = false) List<String> states,
-                                 @RequestParam(value = "categories", required = false) List<Long> categories,
-                                 @RequestParam(value = "rangeStart", required = false)
+    public List<EventFullDto> getAll(@RequestParam(value = "users", required = false) List<Long> users,
+                                     @RequestParam(value = "states", required = false) List<String> states,
+                                     @RequestParam(value = "categories", required = false) List<Long> categories,
+                                     @RequestParam(value = "rangeStart", required = false)
                                  @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeStart,
-                                 @RequestParam(value = "rangeEnd", required = false)
+                                     @RequestParam(value = "rangeEnd", required = false)
                                  @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeEnd,
-                                 @PositiveOrZero @RequestParam(value = "from", defaultValue = "0") int from,
-                                 @Positive @RequestParam(value = "size", defaultValue = "10") int size,
-                                 HttpServletRequest request) {
+                                     @PositiveOrZero @RequestParam(value = "from", defaultValue = "0") int from,
+                                     @Positive @RequestParam(value = "size", defaultValue = "10") int size,
+                                     HttpServletRequest request) {
         statClient.create(new HitDto(request.getRemoteAddr(), "main-service", "/events", LocalDateTime.now()));
 
         return eventService.getAll(users, states, categories, rangeStart, rangeEnd, PageRequest.of(from, size));
     }
 
     @PatchMapping("/{eventId}")
-    public EventDto updateEvent(@PathVariable Long eventId, @RequestBody @Valid UpdateEventAdminDto eventDto) {
+    public EventFullDto updateEvent(@PathVariable Long eventId, @RequestBody @Valid UpdateEventAdminDto eventDto) {
 
         return eventService.updateByAdmin(eventId, eventDto);
     }

@@ -10,10 +10,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class LocationDto {
 
-    Long id;
-
     @NotNull
-    private Double lat;
+    Double lat;
     @NotNull
-    private Double lon;
+    Double lon;
 }

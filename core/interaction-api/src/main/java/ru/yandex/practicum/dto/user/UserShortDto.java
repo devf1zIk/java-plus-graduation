@@ -8,6 +8,6 @@ import lombok.RequiredArgsConstructor;
 @AllArgsConstructor
 @RequiredArgsConstructor
 public class UserShortDto {
-    private long id;
-    private String name;
+    Long id;
+    String name;
 }

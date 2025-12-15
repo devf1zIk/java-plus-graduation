@@ -41,7 +41,7 @@ public class EventService {
     private final RequestClient requestClient;
     private final StatsClient statsClient;
 
-    public EventDto create(NewEventDto eventDto, Long userId) {
+    public EventFullDto create(NewEventDto eventDto, Long userId) {
         UserShortDto ownerId = userClient.getUser(userId);
         EventCategory category = categoryRepository.findById(eventDto.getCategory())
                 .orElseThrow(() -> new NotFoundException(
@@ -72,7 +72,7 @@ public class EventService {
                 userClient.getUser(ownerId.getId()), 0L, 0);
     }
 
-    public EventDto updateByAdmin(Long eventId, UpdateEventAdminDto updateEventDto) {
+    public EventFullDto updateByAdmin(Long eventId, UpdateEventAdminDto updateEventDto) {
         Event event = getEventIfExist(eventId);
         if (!event.getState().equals(EventState.PENDING)) {
             throw new ConflictException("Только событие в статусе pending может быть опубликовано");
@@ -123,8 +123,8 @@ public class EventService {
         return getEventDtoFromEvent(updatedEvent);
     }
 
-    public List<EventDto> getAll(List<Long> users, List<String> states, List<Long> categories,
-                                 LocalDateTime rangeStart, LocalDateTime rangeEnd, Pageable pageable) {
+    public List<EventFullDto> getAll(List<Long> users, List<String> states, List<Long> categories,
+                                     LocalDateTime rangeStart, LocalDateTime rangeEnd, Pageable pageable) {
         List<EventState> eventStates = new ArrayList<>();
         if (states != null) {
             for (String state : states) {
@@ -161,16 +161,16 @@ public class EventService {
         return getEventsFulls(events.getContent());
     }
 
-    public EventDto getById(Long eventId) {
+    public EventFullDto getById(Long eventId) {
         Event event = getEventIfExist(eventId);
         if (event.getPublishedOn() == null) {
             throw new NotFoundException("Событие с id" + eventId + " ещё не опубликовано");
         }
         Integer views = getEventsViews(event.getId()) + 1;
-        EventDto eventDto = getEventDtoFromEvent(event);
-        eventDto.setViews(views);
+        EventFullDto eventFullDto = getEventDtoFromEvent(event);
+        eventFullDto.setViews(views);
 
-        return eventDto;
+        return eventFullDto;
     }
 
     public Integer getEventsViews(Long eventId) {
@@ -183,7 +183,7 @@ public class EventService {
         }
     }
 
-    public EventDto updateByUser(UpdateEventUserRequest eventDto, Long userId, Long eventId) {
+    public EventFullDto updateByUser(UpdateEventUserRequest eventDto, Long userId, Long eventId) {
         Event event = getEventIfExist(eventId);
         userClient.getUser(userId);
 
@@ -285,7 +285,7 @@ public class EventService {
         return getEventsShorts(events);
     }
 
-    public EventDto getEventByUserId(Long userId, Long eventId) {
+    public EventFullDto getEventByUserId(Long userId, Long eventId) {
         Event event = getEventIfExist(eventId);
         userClient.getUser(userId);
         if (!Objects.equals(event.getOwnerId(), userId)) {
@@ -355,7 +355,7 @@ public class EventService {
         }
     }
 
-    private EventDto getEventDtoFromEvent(Event event) {
+    private EventFullDto getEventDtoFromEvent(Event event) {
         long confirmedRequests = eventRepository.findAllByEventInAndStatus(Collections.singletonList(event.getId()), RequestStatus.CONFIRMED).size();
         Integer views = getEventsViews(event.getId());
 
@@ -376,7 +376,7 @@ public class EventService {
         return events.stream().map(Event::getId).toList();
     }
 
-    private List<EventDto> getEventsFulls(List<Event> events) {
+    private List<EventFullDto> getEventsFulls(List<Event> events) {
         if (events == null || events.isEmpty()) {
             return new ArrayList<>();
         }

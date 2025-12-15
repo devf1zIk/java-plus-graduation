@@ -6,5 +6,5 @@ import ru.yandex.practicum.dto.event.*;
 public interface EventOperations {
 
     @GetMapping("/events/{id}")
-    EventDto getPublicEvent(Long eventId);
+    EventFullDto getPublicEvent(Long eventId);
 }

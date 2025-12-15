@@ -11,7 +11,7 @@ import ru.yandex.practicum.client.event.EventClient;
 import ru.yandex.practicum.client.user.UserClient;
 import ru.yandex.practicum.dto.comment.CommentDto;
 import ru.yandex.practicum.dto.comment.MergeCommentRequest;
-import ru.yandex.practicum.dto.event.EventDto;
+import ru.yandex.practicum.dto.event.EventFullDto;
 import ru.yandex.practicum.enums.EventState;
 import ru.yandex.practicum.exception.model.NotFoundException;
 import ru.yandex.practicum.exception.model.PublicationException;
@@ -33,7 +33,7 @@ public class CommentService {
 
     public CommentDto createComment(MergeCommentRequest mergeCommentRequest, Long userId) {
         checkUser(userId);
-        EventDto event = eventClient.getPublicEvent(mergeCommentRequest.getEventId());
+        EventFullDto event = eventClient.getPublicEvent(mergeCommentRequest.getEventId());
 
         if (!event.getState().equals(EventState.PUBLISHED)) {
             throw new PublicationException("Event must be published");

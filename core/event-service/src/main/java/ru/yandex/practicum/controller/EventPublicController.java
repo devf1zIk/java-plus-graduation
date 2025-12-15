@@ -9,7 +9,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.client.StatsClient;
 import ru.yandex.practicum.dto.HitDto;
-import ru.yandex.practicum.dto.event.EventDto;
+import ru.yandex.practicum.dto.event.EventFullDto;
 import ru.yandex.practicum.dto.event.EventShortDto;
 import ru.yandex.practicum.service.EventService;
 import java.time.LocalDateTime;
@@ -30,8 +30,8 @@ public class EventPublicController {
     }
 
     @GetMapping("/{id}")
-    public EventDto getEvent(@PathVariable Long id,
-                             HttpServletRequest request) {
+    public EventFullDto getEvent(@PathVariable Long id,
+                                 HttpServletRequest request) {
         statClient.create(new HitDto(request.getRemoteAddr(), "main-service", request.getRequestURI(),
                 LocalDateTime.now()));
 

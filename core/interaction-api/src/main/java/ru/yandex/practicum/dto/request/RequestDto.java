@@ -12,9 +12,9 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class RequestDto {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime created;
-    private long event;
-    private long id;
-    private long requester;
-    private RequestStatus status;
+    LocalDateTime created;
+    Long eventId;
+    Long id;
+    Long requesterId;
+    RequestStatus status;
 }

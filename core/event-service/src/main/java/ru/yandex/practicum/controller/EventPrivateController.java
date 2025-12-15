@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.client.StatsClient;
 import ru.yandex.practicum.dto.HitDto;
 import ru.yandex.practicum.dto.event.NewEventDto;
-import ru.yandex.practicum.dto.event.EventDto;
+import ru.yandex.practicum.dto.event.EventFullDto;
 import ru.yandex.practicum.dto.event.EventShortDto;
 import ru.yandex.practicum.dto.event.UpdateEventUserRequest;
 import ru.yandex.practicum.service.EventService;
@@ -45,21 +45,21 @@ public class EventPrivateController {
 
     @PostMapping("/{userId}/events")
     @ResponseStatus(HttpStatus.CREATED)
-    public EventDto createEvent(@RequestBody @Valid NewEventDto newEventDto, @PathVariable Long userId) {
+    public EventFullDto createEvent(@RequestBody @Valid NewEventDto newEventDto, @PathVariable Long userId) {
 
         return eventService.create(newEventDto, userId);
     }
 
     @GetMapping("/{userId}/events/{eventId}")
-    public EventDto getUserEvents(@PathVariable Long userId, @PathVariable Long eventId, HttpServletRequest request) {
+    public EventFullDto getUserEvents(@PathVariable Long userId, @PathVariable Long eventId, HttpServletRequest request) {
         statClient.create(new HitDto(request.getRemoteAddr(), "main-service", "/events", LocalDateTime.now()));
 
         return eventService.getEventByUserId(userId, eventId);
     }
 
     @PatchMapping("/{userId}/events/{eventId}")
-    public EventDto updateEvent(@RequestBody @Valid UpdateEventUserRequest eventDto,
-                                @PathVariable Long userId, @PathVariable Long eventId, HttpServletRequest request) {
+    public EventFullDto updateEvent(@RequestBody @Valid UpdateEventUserRequest eventDto,
+                                    @PathVariable Long userId, @PathVariable Long eventId, HttpServletRequest request) {
         statClient.create(new HitDto(request.getRemoteAddr(), "main-service", "/events/" + eventId,
                 LocalDateTime.now()));
 
