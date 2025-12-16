@@ -15,6 +15,7 @@ import ru.yandex.practicum.dto.event.EventShortDto;
 import ru.yandex.practicum.dto.event.UpdateEventAdminDto;
 import ru.yandex.practicum.enums.AdminEventAction;
 import ru.yandex.practicum.enums.EventState;
+import ru.yandex.practicum.enums.RequestStatus;
 import ru.yandex.practicum.exception.model.BadRequestException;
 import ru.yandex.practicum.exception.model.ConflictException;
 import ru.yandex.practicum.exception.model.NotFoundException;
@@ -32,7 +33,6 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import static java.time.LocalDateTime.now;
-import static ru.yandex.practicum.enums.RequestStatus.CONFIRMED;
 
 @Service
 public class EventService {
@@ -271,12 +271,11 @@ public class EventService {
         if (onlyAvailable) {
             if (rangeStart == null || rangeEnd == null) {
                 events = eventRepository.findAllAvailablePublishedEventsByCategoryAndStateAfterDate(text,
-                        now().toInstant(ZoneOffset.UTC), categories, paging, EventState.PUBLISHED,
-                        CONFIRMED, paid);
+                        now().toInstant(ZoneOffset.UTC), categories, paging, EventState.PUBLISHED, paid);
             } else {
                 events = eventRepository.findAllAvailablePublishedEventsByCategoryAndStateBetweenDates(text,
                         rangeStart.toInstant(ZoneOffset.UTC), rangeEnd.toInstant(ZoneOffset.UTC), categories, paging,
-                        EventState.PUBLISHED, CONFIRMED, paid);
+                        EventState.PUBLISHED, paid);
             }
         } else {
             if (rangeStart == null || rangeEnd == null) {
@@ -370,7 +369,7 @@ public class EventService {
     }
 
     private EventDto getEventDtoFromEvent(Event event) {
-        Long confirmedRequests = requestClient.getConfirmedRequestsCount(event.getId());
+        Long confirmedRequests = requestClient.getConfirmedRequestsCount(event.getId(), RequestStatus.CONFIRMED);
         Integer views = getEventsViews(event.getId());
 
         return EventMapper.fromEventToEventDto(
@@ -397,7 +396,7 @@ public class EventService {
         return events.stream()
                 .map(event -> {
                     Long confirmed =
-                            requestClient.getConfirmedRequestsCount(event.getId());
+                            requestClient.getConfirmedRequestsCount(event.getId(), RequestStatus.CONFIRMED);
 
                     return EventMapper.fromEventToEventDto(
                             event,
@@ -421,7 +420,7 @@ public class EventService {
         return events.stream()
                 .map(event -> {
                     Long confirmed =
-                            requestClient.getConfirmedRequestsCount(event.getId());
+                            requestClient.getConfirmedRequestsCount(event.getId(), RequestStatus.CONFIRMED);
 
                     return EventMapper.fromEventToEventShortDto(
                             event,

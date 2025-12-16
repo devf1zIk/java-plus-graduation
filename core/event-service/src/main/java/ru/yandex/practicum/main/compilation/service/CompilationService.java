@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.client.StatsClient;
 import ru.yandex.practicum.client.request.RequestClient;
 import ru.yandex.practicum.client.user.UserClient;
+import ru.yandex.practicum.enums.RequestStatus;
 import ru.yandex.practicum.exception.model.BadRequestException;
 import ru.yandex.practicum.exception.model.NotFoundException;
 import ru.yandex.practicum.main.category.mapper.EventCategoryMapper;
@@ -185,7 +186,7 @@ public class CompilationService {
                 .map(event -> EventMapper.fromEventToEventShortDto(event,
                         EventCategoryMapper.toCategoryDtoFromCategory(event.getCategory()),
                         userClient.getUserShortById(event.getInitiatorId()),
-                        requestClient.getConfirmedRequestsCount(event.getId()),
+                        requestClient.getConfirmedRequestsCount(event.getId(), RequestStatus.CONFIRMED),
                         viewsMap.get(event.getId()))).collect(Collectors.toSet());
     }
 }
