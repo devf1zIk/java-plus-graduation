@@ -5,10 +5,10 @@ spring:
     gateway:
       discovery.locator.enabled: true
       routes:
-        - id: main-service
-          uri: lb://main-service
+        - id: user_service_route
+          uri: lb://user-service
           predicates:
-            - Path=/**
+            - Path=/admin/users/**
 management:
   endpoint:
     gateway:
