@@ -11,9 +11,9 @@ import lombok.RequiredArgsConstructor;
 @AllArgsConstructor
 @RequiredArgsConstructor
 public class CategoryDto {
-    private Long id;
+    Long id;
     @NotBlank
     @Size(max = 50)
-    private String name;
+    String name;
 
 }

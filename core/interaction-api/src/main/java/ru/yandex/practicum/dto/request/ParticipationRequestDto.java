@@ -12,9 +12,13 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class ParticipationRequestDto {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime created;
-    private long event;
-    private long id;
-    private long requester;
-    private RequestStatus status;
+    LocalDateTime created;
+
+    long event;
+
+    long id;
+
+    long requester;
+
+    RequestStatus status;
 }

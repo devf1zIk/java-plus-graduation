@@ -1,6 +1,7 @@
 package ru.yandex.practicum.main.compilation.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -45,7 +46,8 @@ public class CompilationService {
         this.statClient = statClient;
     }
 
-    public List<CompilationDto> getAll(boolean pinned, Pageable pageable) {
+    public List<CompilationDto> getAll(boolean pinned, int from, int size) {
+        Pageable pageable = PageRequest.of(from / size, size);
         List<Compilation> compilations = compilationRepository
                 .getAllByPinned(pinned, pageable).stream().toList();
         List<CompilationDto> result = new ArrayList<>();
@@ -61,7 +63,7 @@ public class CompilationService {
         return result;
     }
 
-    public CompilationDto getById(long id) {
+    public CompilationDto getCompilationById(Long id) {
         Compilation compilation = compilationRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Подборка с id " + id + " не найдена в БД"));
 
@@ -103,13 +105,13 @@ public class CompilationService {
         return CompilationMapper.toDtoFromCompilation(compilation, items);
     }
 
-    public void delete(long compilationId) {
+    public void deleteCompilation(Long compilationId) {
         Compilation compilation = compilationRepository.findById(compilationId)
                 .orElseThrow(() -> new NotFoundException("Подборка с id " + compilationId + " не существует!"));
         compilationRepository.delete(compilation);
     }
 
-    public CompilationDto updateCompilation(long compilationId, CompilationRequestDto updateCompilationRequest) {
+    public CompilationDto updateCompilation(Long compilationId, CompilationRequestDto updateCompilationRequest) {
         Compilation existedCompilation = compilationRepository.findById(compilationId)
                 .orElseThrow(() -> new NotFoundException("Подборка с id " + compilationId + " не существует!"));
         Set<Event> eventSet;
@@ -185,8 +187,8 @@ public class CompilationService {
         return events.stream()
                 .map(event -> EventMapper.fromEventToEventShortDto(event,
                         EventCategoryMapper.toCategoryDtoFromCategory(event.getCategory()),
-                        userClient.getUserShortById(event.getInitiatorId()),
-                        requestClient.getConfirmedRequestsCount(event.getId(), RequestStatus.CONFIRMED),
+                        userClient.getUser(event.getInitiatorId()),
+                        requestClient.countByStatus(event.getId(), RequestStatus.CONFIRMED),
                         viewsMap.get(event.getId()))).collect(Collectors.toSet());
     }
 }

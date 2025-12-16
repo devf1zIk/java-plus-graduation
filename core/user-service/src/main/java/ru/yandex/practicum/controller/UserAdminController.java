@@ -4,15 +4,18 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.dto.user.NewUserRequestDto;
 import ru.yandex.practicum.dto.user.UserFullDto;
+import ru.yandex.practicum.dto.user.UserShortDto;
 import ru.yandex.practicum.service.UserService;
 import java.util.List;
 
 @RestController
 @RequestMapping(path = "/admin/users")
+@Validated
 public class UserAdminController {
 
     private final UserService userService;
@@ -24,25 +27,27 @@ public class UserAdminController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public UserFullDto addUser(@RequestBody @Valid UserFullDto userFullDto) {
-        return userService.addUser(userFullDto);
+    public UserFullDto addUser(@RequestBody @Valid NewUserRequestDto newUserDto) {
+        return userService.addUser(newUserDto);
     }
 
-    @GetMapping("/{id}")
-    public UserFullDto getUser(@PathVariable("id") Integer id) {
-        return userService.getUser(id);
+    @GetMapping("/{userId}")
+    public UserShortDto getUser(@PathVariable Long userId) {
+        return userService.getUser(userId);
     }
 
     @GetMapping
-    public List<UserFullDto> getUsers(@RequestParam(value = "ids", required = false) List<Long> usersIds,
-                                      @PositiveOrZero @RequestParam(value = "from", defaultValue = "0") int from,
-                                      @Positive @RequestParam(value = "size", defaultValue = "10") int size) {
-        return userService.getUsers(usersIds, PageRequest.of(from, size));
+    @ResponseStatus(HttpStatus.OK)
+    public List<UserFullDto> getUsers(
+            @RequestParam(name = "ids", required = false) List<Long> ids,
+            @RequestParam(name = "from", defaultValue = "0") @PositiveOrZero Integer from,
+            @RequestParam(name = "size", defaultValue = "10") @Positive Integer size) {
+        return userService.getUsers(ids, from, size);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteUser(@PathVariable("id") Integer id) {
-        userService.deleteUser(id);
+    public void deleteUser(@PathVariable Long userId) {
+        userService.deleteUser(userId);
     }
 }

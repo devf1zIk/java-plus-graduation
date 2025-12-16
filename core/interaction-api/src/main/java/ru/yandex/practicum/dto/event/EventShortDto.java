@@ -15,18 +15,18 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class EventShortDto {
 
-    private long id;
+    long id;
     @NotBlank
     @Size(min = 20, max = 2000)
-    private String annotation;
-    private CategoryDto category;
-    private long confirmedRequests;
+    String annotation;
+    CategoryDto category;
+    long confirmedRequests;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime eventDate;
-    private UserShortDto initiator;
-    private Boolean paid;
+    LocalDateTime eventDate;
+    UserShortDto initiator;
+    Boolean paid;
     @NotBlank
     @Size(min = 3, max = 120)
-    private String title;
-    private Integer views;
+    String title;
+    Integer views;
 }

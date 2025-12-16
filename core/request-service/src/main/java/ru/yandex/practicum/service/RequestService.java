@@ -7,6 +7,7 @@ import ru.yandex.practicum.client.user.UserClient;
 import ru.yandex.practicum.dto.event.EventDto;
 import ru.yandex.practicum.dto.request.ParticipationRequestDto;
 import ru.yandex.practicum.dto.request.RequestStatusUpdateRequest;
+import ru.yandex.practicum.enums.RequestStatus;
 import ru.yandex.practicum.exception.model.ConflictException;
 import ru.yandex.practicum.exception.model.NotFoundException;
 import ru.yandex.practicum.mapper.RequestMapper;
@@ -15,8 +16,7 @@ import ru.yandex.practicum.repository.RequestRepository;
 import ru.yandex.practicum.dto.request.RequestStatusUpdateResponse;
 import java.time.LocalDateTime;
 import java.util.*;
-
-import static ru.yandex.practicum.enums.RequestStatus.*;
+import ru.yandex.practicum.enums.RequestStatus.*;
 
 @Service
 public class RequestService {
@@ -33,8 +33,8 @@ public class RequestService {
     }
 
     public List<ParticipationRequestDto> getEventRequests(Long userId, Long eventId) {
-        EventDto eventDto = eventClient.getEventById(eventId);
-        userClient.getUserShortById(userId);
+        EventDto eventDto = eventClient.getEvent(eventId);
+        userClient.getUser(userId);
         if (!Objects.equals(eventDto.getInitiator().getId(), userId)) {
             throw new NotFoundException("User c id " + userId + " не хозяин для события " + eventId);
         }
@@ -44,21 +44,22 @@ public class RequestService {
     }
 
     public RequestStatusUpdateResponse updateRequest(Long userId, Long eventId, RequestStatusUpdateRequest request) {
-        EventDto eventDto = eventClient.getEventById(eventId);
-        userClient.getUserShortById(userId);
+
+        EventDto eventDto = eventClient.getEvent(eventId);
+        userClient.getUser(userId);
         List<ParticipationRequest> requests = requestRepository.findAllByIdIn(request.getRequestIds());
         Set<ParticipationRequestDto> confirmed = new HashSet<>();
         Set<ParticipationRequestDto> rejected = new HashSet<>();
         RequestStatusUpdateResponse result = new RequestStatusUpdateResponse(confirmed, rejected);
         List<ParticipationRequest> pendingRequests = requests.stream()
-                .filter(request1 -> request1.getStatus().equals(PENDING)).toList();
+                .filter(request1 -> request1.getStatus().equals(RequestStatus.PENDING)).toList();
 
         if (pendingRequests.isEmpty()) {
             throw new ConflictException("Запрос не найден");
         }
-        long confirmedRequestsCount = requestRepository.findAllByEventIdAndStatus(eventId, CONFIRMED).size();
+        long confirmedRequestsCount = requestRepository.findAllByEventIdAndStatus(eventId, RequestStatus.CONFIRMED).size();
         if (!eventDto.getRequestModeration() || eventDto.getParticipantLimit() == 0) {
-            requests.forEach(req -> req.setStatus(CONFIRMED));
+            requests.forEach(req -> req.setStatus(RequestStatus.CONFIRMED));
             result.getConfirmedRequests().addAll(requests.stream()
                     .map(RequestMapper::fromRequestTpRequestDto)
                     .toList());
@@ -71,28 +72,28 @@ public class RequestService {
         }
 
         if ((confirmedRequestsCount + request.getRequestIds().size()) == eventDto.getParticipantLimit() &&
-                request.getStatus().equals(CONFIRMED)) {
-            requests.forEach(req -> req.setStatus(REJECTED));
+                request.getStatus().equals(RequestStatus.CONFIRMED)) {
+            requests.forEach(req -> req.setStatus(RequestStatus.REJECTED));
             confirmed.addAll(requests.stream().map(RequestMapper::fromRequestTpRequestDto).toList());
             requestRepository.saveAll(requests);
             result.setConfirmedRequests(confirmed);
 
             List<ParticipationRequest> otherPendingRequests = requestRepository
-                    .findAllByEventIdAndStatus(eventId, PENDING);
-            otherPendingRequests.forEach(req -> req.setStatus(REJECTED));
+                    .findAllByEventIdAndStatus(eventId, RequestStatus.PENDING);
+            otherPendingRequests.forEach(req -> req.setStatus(RequestStatus.REJECTED));
             requestRepository.saveAll(otherPendingRequests);
             rejected.addAll(otherPendingRequests.stream().map(RequestMapper::fromRequestTpRequestDto).toList());
             result.setRejectedRequests(rejected);
             return result;
         }
 
-        if (request.getStatus().equals(CONFIRMED)) {
-            requests.forEach(req -> req.setStatus(CONFIRMED));
+        if (request.getStatus().equals(RequestStatus.CONFIRMED)) {
+            requests.forEach(req -> req.setStatus(RequestStatus.CONFIRMED));
             confirmed.addAll(requests.stream().map(RequestMapper::fromRequestTpRequestDto).toList());
             requestRepository.saveAll(requests);
             result.setConfirmedRequests(confirmed);
-        } else if (request.getStatus().equals(REJECTED)) {
-            requests.forEach(req -> req.setStatus(REJECTED));
+        } else if (request.getStatus().equals(RequestStatus.REJECTED)) {
+            requests.forEach(req -> req.setStatus(RequestStatus.REJECTED));
             rejected.addAll(requests.stream().map(RequestMapper::fromRequestTpRequestDto).toList());
             requestRepository.saveAll(requests);
             result.setRejectedRequests(rejected);
@@ -101,24 +102,24 @@ public class RequestService {
         return result;
     }
 
-    public List<ParticipationRequestDto> getByUserId(Long userId) {
-        List<ParticipationRequest> result = requestRepository.findAllByRequesterId(userClient.getUserShortById(userId).getId());
+    public List<ParticipationRequestDto> getUserRequests(Long userId) {
+        List<ParticipationRequest> result = requestRepository.findAllByRequesterId(userClient.getUser(userId).getId());
 
         return result.stream().map(RequestMapper::fromRequestTpRequestDto).toList();
 
     }
 
-    public ParticipationRequestDto create(Long userId, Long eventId) {
-        userClient.getUserShortById(userId);
-        EventDto eventDto = eventClient.getEventById(eventId);
+    public ParticipationRequestDto addParticipationRequest(Long userId, Long eventId) {
+        userClient.getUser(userId);
+        EventDto eventDto = eventClient.getEvent(eventId);
         if (Objects.equals(userId, eventDto.getInitiator().getId())) {
             throw new ConflictException("User c id " + userId + " не хозяин для события " + eventId);
         }
         if (eventDto.getPublishedOn() == null) {
             throw new ConflictException("Событие с id " + eventId + " еще не опубликовано");
         }
-
-        long confirmedRequestsCount = requestRepository.findAllByEventIdAndStatus(eventId, CONFIRMED).size();
+        RequestStatus status = RequestStatus.PENDING;
+        long confirmedRequestsCount = requestRepository.findAllByEventIdAndStatus(eventId, status).size();
         if (confirmedRequestsCount == eventDto.getParticipantLimit() && eventDto.getParticipantLimit() > 0) {
             throw new ConflictException(
                     "Лимит участников для события " + eventId + " превышен");
@@ -127,33 +128,33 @@ public class RequestService {
             throw new ConflictException("Запрос на участие в событии " + eventId +
                     " уже существует для пользователя с id " + userId);
         }
-        ParticipationRequest request = new ParticipationRequest(null, LocalDateTime.now(), eventId, userId, PENDING);
+        ParticipationRequest request = new ParticipationRequest();
+        request.setEventId(eventId);
+        request.setRequesterId(userId);
+        request.setCreatedOn(LocalDateTime.now());
+        request.setStatus(status);
         if (!eventDto.getRequestModeration()) {
-            request.setStatus(CONFIRMED);
+            request.setStatus(RequestStatus.CONFIRMED);
         }
-        if (eventDto.getParticipantLimit() == 0) {
-            request.setStatus(CONFIRMED);
+        if (eventDto.getParticipantLimit() == 0 && requestRepository.countByEventIdAndStatus(eventId, RequestStatus.CONFIRMED) >= eventDto.getParticipantLimit()) {
+            request.setStatus(RequestStatus.CONFIRMED);
         }
         ParticipationRequest result = requestRepository.save(request);
 
         return RequestMapper.fromRequestTpRequestDto(result);
     }
 
-    public ParticipationRequestDto cancelRequestByUser(Long userId, Long requestId) {
-        userClient.getUserShortById(userId);
+    public ParticipationRequestDto cancelRequest(Long userId, Long requestId) {
+        userClient.getUser(userId);
         ParticipationRequest request = requestRepository
                 .findById(requestId)
                 .orElseThrow(() -> new NotFoundException("Запрос с id=" + requestId + " не существует!"));
         if (!Objects.equals(request.getRequesterId(), userId)) {
             throw new ConflictException("User c id " + userId + " не хозяин для запроса " + requestId);
         }
-        request.setStatus(CANCELED);
+        request.setStatus(RequestStatus.CANCELED);
         ParticipationRequest result = requestRepository.save(request);
 
         return RequestMapper.fromRequestTpRequestDto(result);
-    }
-
-    public List<ParticipationRequest> getConfirmedRequestsCount(Long eventId) {
-        return requestRepository.findAllByEventIdAndStatus(eventId, CONFIRMED);
     }
 }

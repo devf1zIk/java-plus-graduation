@@ -32,7 +32,7 @@ public class CommentService {
     private final EventRepository eventRepository;
 
     public CommentDto createComment(MergeCommentRequest mergeCommentRequest, Long userId) {
-        UserShortDto user = userClient.getUserShortById(userId);
+        UserShortDto user = userClient.getUser(userId);
         Event event = findEventById(mergeCommentRequest.getEventId());
 
         if (!event.getState().equals(EventState.PUBLISHED)) {

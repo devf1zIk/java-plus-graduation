@@ -19,9 +19,9 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     List<Event> findAllByCategory(EventCategory category);
 
     @Query("SELECT e FROM Event e " +
-            "WHERE e.initiatorId is not null or e.initiatorId IN :usersIds " +
-            "AND e.state is not null or e.state = :states " +
-            "AND e.category.id is not null or e.category.id in :categoriesIds " +
+            "WHERE (e.initiatorId IS NOT NULL OR e.initiatorId IN :usersIds) " +
+            "AND (e.state IS NOT NULL OR e.state IN :states) " +
+            "AND e.category.id IN :categoriesIds " +
             "AND e.eventDateTime > :dateTime")
     Page<Event> findAllEventsAfterDateForUsersByStateAndCategories(List<Long> usersIds, List<EventState> states,
                                                                    List<Long> categoriesIds,
@@ -37,15 +37,17 @@ public interface EventRepository extends JpaRepository<Event, Long> {
                                                                       List<Long> categoriesIds,
                                                                       Instant startDateTime,
                                                                       Instant endDateTime, Pageable pageable);
+
     @Query("""
-    SELECT e FROM Event e
-    WHERE (:text IS NULL
-           OR UPPER(e.annotation) LIKE UPPER(CONCAT('%', :text, '%'))
-           OR UPPER(e.description) LIKE UPPER(CONCAT('%', :text, '%')))
-      AND e.category.id IN :categoriesIds
-      AND e.eventDateTime >= :startDateTime
-      AND e.state = :eventState
-      AND (:paid IS NULL OR e.isPaid = :paid)""")
+        SELECT e FROM Event e
+        WHERE (:text IS NULL
+               OR UPPER(e.annotation) LIKE UPPER(CONCAT('%', :text, '%'))
+               OR UPPER(e.description) LIKE UPPER(CONCAT('%', :text, '%')))
+          AND e.category.id IN :categoriesIds
+          AND e.eventDateTime >= :startDateTime
+          AND e.state = :eventState
+          AND (:paid IS NULL OR e.paid = :paid)
+        """)
     Page<Event> findAllAvailablePublishedEventsByCategoryAndStateAfterDate(
             String text,
             Instant startDateTime,
@@ -55,16 +57,16 @@ public interface EventRepository extends JpaRepository<Event, Long> {
             Boolean paid
     );
 
-
     @Query("""
-    SELECT e FROM Event e
-    WHERE (:text IS NULL
-           OR UPPER(e.annotation) LIKE UPPER(CONCAT('%', :text, '%'))
-           OR UPPER(e.description) LIKE UPPER(CONCAT('%', :text, '%')))
-      AND e.category.id IN :categoriesIds
-      AND e.eventDateTime BETWEEN :startDateTime AND :endDateTime
-      AND e.state = :eventState
-      AND (:paid IS NULL OR e.isPaid = :paid)""")
+        SELECT e FROM Event e
+        WHERE (:text IS NULL
+               OR UPPER(e.annotation) LIKE UPPER(CONCAT('%', :text, '%'))
+               OR UPPER(e.description) LIKE UPPER(CONCAT('%', :text, '%')))
+          AND e.category.id IN :categoriesIds
+          AND e.eventDateTime BETWEEN :startDateTime AND :endDateTime
+          AND e.state = :eventState
+          AND (:paid IS NULL OR e.paid = :paid)
+        """)
     Page<Event> findAllAvailablePublishedEventsByCategoryAndStateBetweenDates(
             String text,
             Instant startDateTime,
@@ -75,30 +77,31 @@ public interface EventRepository extends JpaRepository<Event, Long> {
             Boolean paid
     );
 
-    @Query(" SELECT e FROM Event e " +
-            "WHERE (UPPER(e.annotation) LIKE UPPER(CONCAT('%', :text, '%')) " +
-            "OR UPPER(e.description) LIKE UPPER(CONCAT('%', :text, '%')) " +
-            "OR :text is null) " +
-            "AND (e.category.id IN :categoriesIds)" +
-            "AND e.isPaid is not null or e.isPaid = :isPaid " +
-            "AND e.eventDateTime >= :startDateTime " +
-            "AND e.state = :state")
+    @Query("""
+        SELECT e FROM Event e
+        WHERE (:text IS NULL
+               OR UPPER(e.annotation) LIKE UPPER(CONCAT('%', :text, '%'))
+               OR UPPER(e.description) LIKE UPPER(CONCAT('%', :text, '%')))
+          AND e.category.id IN :categoriesIds
+          AND (:paid IS NULL OR e.paid = :paid)
+          AND e.eventDateTime >= :startDateTime
+          AND e.state = :state
+        """)
     Page<Event> findAllEventsWithStatusAfterDate(String text, Instant startDateTime,
                                                  List<Long> categoriesIds, EventState state,
-                                                 Pageable pageable, Boolean isPaid);
+                                                 Pageable pageable, Boolean paid);
 
-    @Query(" SELECT e FROM Event e " +
-            "WHERE (UPPER(e.annotation) LIKE UPPER(CONCAT('%', :text, '%')) " +
-            "OR UPPER(e.description) LIKE UPPER(CONCAT('%', :text, '%')) " +
-            "OR :text is null) " +
-            "AND (e.category.id IN :categoriesIds)" +
-            "AND e.eventDateTime BETWEEN :startDateTime AND :endDateTime " +
-            "AND e.isPaid is not null or e.isPaid = :isPaid " +
-            "AND e.state = :state")
+    @Query("""
+        SELECT e FROM Event e
+        WHERE (:text IS NULL
+               OR UPPER(e.annotation) LIKE UPPER(CONCAT('%', :text, '%'))
+               OR UPPER(e.description) LIKE UPPER(CONCAT('%', :text, '%')))
+          AND e.category.id IN :categoriesIds
+          AND (:paid IS NULL OR e.paid = :paid)
+          AND e.eventDateTime BETWEEN :startDateTime AND :endDateTime
+          AND e.state = :state
+        """)
     Page<Event> findAllEventsWithStatusBetweenDates(String text, Instant startDateTime, Instant endDateTime,
                                                     List<Long> categoriesIds, EventState state,
-                                                    Pageable pageable, boolean isPaid);
-
-
+                                                    Pageable pageable, Boolean paid);
 }
-

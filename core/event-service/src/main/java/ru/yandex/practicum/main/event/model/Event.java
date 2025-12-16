@@ -24,8 +24,10 @@ public class Event {
     @Size(min = 1, max = 120)
     private String title;
     @Size(min = 20, max = 2000)
+    @Column(name = "annotation", nullable = false, columnDefinition = "TEXT")
     private String annotation;
     @Size(min = 20, max = 7000)
+    @Column(name = "description", nullable = false, columnDefinition = "TEXT")
     private String description;
     @ManyToOne(fetch = FetchType.EAGER)
     @JsonIgnore
@@ -33,12 +35,13 @@ public class Event {
     private EventCategory category;
     private Instant createdOn;
     private Instant eventDateTime;
-    @Column(name = "initiatorId")
-    private long initiatorId;
+    @Column(name = "initiator_id")
+    private Long initiatorId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "location_id")
     private Location location;
-    private Boolean isPaid;
+    private Boolean paid;
     private Long participantLimit;
     private Instant publishedOn;
     private Boolean isModerated;

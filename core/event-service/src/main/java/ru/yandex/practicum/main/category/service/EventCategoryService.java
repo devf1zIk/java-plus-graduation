@@ -1,9 +1,11 @@
 package ru.yandex.practicum.main.category.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.dto.category.CategoryDto;
+import ru.yandex.practicum.dto.category.NewCategoryDto;
 import ru.yandex.practicum.exception.model.ConflictException;
 import ru.yandex.practicum.exception.model.NotFoundException;
 import ru.yandex.practicum.main.category.mapper.EventCategoryMapper;
@@ -21,40 +23,41 @@ public class EventCategoryService {
     private final EventCategoryRepository categoryRepository;
     private final EventRepository eventRepository;
 
-    public List<CategoryDto> getAll(Pageable pageable) {
+    public List<CategoryDto> getAllCategories(int from, int size) {
+        Pageable pageable = PageRequest.of(from / size, size);
         return categoryRepository.findAll(pageable).stream()
                 .map(EventCategoryMapper::toCategoryDtoFromCategory).toList();
     }
 
-    public CategoryDto getById(long catId) {
-        EventCategory category = getCategoryIfExist(catId);
+    public CategoryDto getCategoryById(Long categoryId) {
+        EventCategory category = getCategoryIfExist(categoryId);
         return EventCategoryMapper.toCategoryDtoFromCategory(category);
     }
 
-    public CategoryDto update(long catId, CategoryDto eventCategoryDto) {
-        EventCategory categoryToUpdate = getCategoryIfExist(catId);
-        Optional<EventCategory> categoryWithSameName = categoryRepository.findByName(eventCategoryDto.getName());
+    public CategoryDto updateCategory(Long categoryId, NewCategoryDto newCategoryDto) {
+        EventCategory categoryToUpdate = getCategoryIfExist(categoryId);
+        Optional<EventCategory> categoryWithSameName = categoryRepository.findByName(newCategoryDto.getName());
         if (categoryWithSameName.isPresent() && !categoryWithSameName.get().getId().equals(categoryToUpdate.getId())) {
-            throw new ConflictException("Категория " + eventCategoryDto.getName() + " уже существует!");
+            throw new ConflictException("Категория " + newCategoryDto.getName() + " уже существует!");
         }
-        categoryToUpdate.setName(eventCategoryDto.getName());
+        categoryToUpdate.setName(newCategoryDto.getName());
         EventCategory updatedCategory = categoryRepository.save(categoryToUpdate);
 
         return EventCategoryMapper.toCategoryDtoFromCategory(updatedCategory);
     }
 
-    public CategoryDto create(CategoryDto eventCategoryDto) {
-        Optional<EventCategory> categoryWithSameName = categoryRepository.findByName(eventCategoryDto.getName());
+    public CategoryDto addCategory(NewCategoryDto newCategoryDto) {
+        Optional<EventCategory> categoryWithSameName = categoryRepository.findByName(newCategoryDto.getName());
         if (categoryWithSameName.isPresent()) {
-            throw new ConflictException("Категория " + eventCategoryDto.getName() + " уже существует!");
+            throw new ConflictException("Категория " + newCategoryDto.getName() + " уже существует!");
         }
 
-        EventCategory category = categoryRepository.save(EventCategoryMapper.toCategoryFromCategoryDto(eventCategoryDto));
+        EventCategory category = categoryRepository.save(EventCategoryMapper.toCategoryFromCategoryDto(newCategoryDto));
         return EventCategoryMapper.toCategoryDtoFromCategory(category);
     }
 
-    public void delete(long catId) {
-        EventCategory category = getCategoryIfExist(catId);
+    public void deleteCategory(Long categoryId) {
+        EventCategory category = getCategoryIfExist(categoryId);
         List<Event> eventsList = eventRepository.findAllByCategory(category);
         if (!eventsList.isEmpty()) {
             throw new ConflictException("У категории есть события. Удаление невозможно!");
@@ -62,8 +65,8 @@ public class EventCategoryService {
         categoryRepository.delete(category);
     }
 
-    private EventCategory getCategoryIfExist(long catId) {
-        return categoryRepository.findById(catId)
-                .orElseThrow(() -> new NotFoundException("Категория с id " + catId + " не существует!"));
+    private EventCategory getCategoryIfExist(Long categoryId) {
+        return categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new NotFoundException("Категория с id " + categoryId + " не существует!"));
     }
 }

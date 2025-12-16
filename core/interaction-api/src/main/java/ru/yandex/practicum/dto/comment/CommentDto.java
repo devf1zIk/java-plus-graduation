@@ -11,9 +11,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class CommentDto {
-    private Long id;
-    private EventShortDto event;
-    private UserShortDto author;
-    private String text;
-    private LocalDateTime createdAt;
+    Long id;
+    EventShortDto event;
+    UserShortDto author;
+    String text;
+    LocalDateTime createdAt;
 }

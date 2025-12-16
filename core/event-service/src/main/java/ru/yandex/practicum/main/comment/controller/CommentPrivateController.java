@@ -3,6 +3,7 @@ package ru.yandex.practicum.main.comment.controller;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.dto.comment.CommentDto;
 import ru.yandex.practicum.dto.comment.MergeCommentRequest;
@@ -12,6 +13,7 @@ import java.util.Collection;
 @RestController
 @RequestMapping("/users/{userId}/comments")
 @AllArgsConstructor
+@Validated
 public class CommentPrivateController {
     private final CommentService commentService;
 

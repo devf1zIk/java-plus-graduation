@@ -7,6 +7,7 @@ import jakarta.validation.constraints.PositiveOrZero;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.client.StatsClient;
 import ru.yandex.practicum.dto.HitDto;
@@ -18,6 +19,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping(path = "/admin/events")
+@Validated
 public class EventAdminController {
     private final StatsClient statClient;
     private final EventService eventService;
@@ -40,9 +42,9 @@ public class EventAdminController {
                                  @PositiveOrZero @RequestParam(value = "from", defaultValue = "0") int from,
                                  @Positive @RequestParam(value = "size", defaultValue = "10") int size,
                                  HttpServletRequest request) {
-        statClient.create(new HitDto(request.getRemoteAddr(), "main-service", "/events", LocalDateTime.now()));
+        statClient.create(new HitDto(request.getRemoteAddr(), "app", "/events", LocalDateTime.now()));
 
-        return eventService.getAll(users, states, categories, rangeStart, rangeEnd, PageRequest.of(from, size));
+        return eventService.getAll(users, states, categories, rangeStart, rangeEnd, from, size);
     }
 
     @PatchMapping("/{eventId}")

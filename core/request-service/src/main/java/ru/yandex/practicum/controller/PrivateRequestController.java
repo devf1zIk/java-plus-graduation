@@ -1,7 +1,9 @@
 package ru.yandex.practicum.controller;
 
+import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.dto.request.ParticipationRequestDto;
 import ru.yandex.practicum.service.RequestService;
@@ -9,6 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping(path = "/users")
+@Validated
 public class PrivateRequestController {
 
     private final RequestService requestService;
@@ -18,21 +21,25 @@ public class PrivateRequestController {
         this.requestService = requestService;
     }
 
-    //requests
     @GetMapping("/{userId}/requests")
-    public List<ParticipationRequestDto> getUserEvents(@PathVariable Long userId) {
+    @ResponseStatus(HttpStatus.OK)
+    public List<ParticipationRequestDto> getUserRequests(@PathVariable @Positive Long userId) {
 
-        return requestService.getByUserId(userId);
+        return requestService.getUserRequests(userId);
     }
 
     @PostMapping("/{userId}/requests")
     @ResponseStatus(HttpStatus.CREATED)
-    public ParticipationRequestDto createRequest(@PathVariable Long userId, @RequestParam Long eventId) {
-        return requestService.create(userId, eventId);
+    public ParticipationRequestDto createRequest(@PathVariable @Positive Long userId, @RequestParam(required = false) Long eventId) {
+        if (eventId == null || eventId <= 0) {
+            throw new IllegalArgumentException("eventId обязателен и должен быть положительным");
+        }
+        return requestService.addParticipationRequest(userId, eventId);
     }
 
     @PatchMapping("/{userId}/requests/{requestId}/cancel")
-    public ParticipationRequestDto cancelByUser(@PathVariable Long userId, @PathVariable Long requestId) {
-        return requestService.cancelRequestByUser(userId, requestId);
+    @ResponseStatus(HttpStatus.OK)
+    public ParticipationRequestDto cancelRequest(@PathVariable @Positive Long userId, @PathVariable @Positive Long requestId) {
+        return requestService.cancelRequest(userId, requestId);
     }
 }

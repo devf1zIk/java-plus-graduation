@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.dto.category.CategoryDto;
+import ru.yandex.practicum.dto.category.NewCategoryDto;
 import ru.yandex.practicum.main.category.service.EventCategoryService;
 
 
@@ -18,22 +19,23 @@ public class EventCategoryAdminController {
         this.categoryService = categoryService;
     }
 
-    @PatchMapping("/{catId}")
-    public CategoryDto update(@RequestBody @Valid CategoryDto eventCategoryDto,
-                              @PathVariable Long catId) {
-        return categoryService.update(catId, eventCategoryDto);
+    @PatchMapping("/{categoryId}")
+    @ResponseStatus(HttpStatus.OK)
+    public CategoryDto updateCategory(@RequestBody @Valid NewCategoryDto categoryDto,
+                              @PathVariable Long categoryId) {
+        return categoryService.updateCategory(categoryId, categoryDto);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public CategoryDto create(@RequestBody @Valid CategoryDto eventCategoryDto) {
-        return categoryService.create(eventCategoryDto);
+    public CategoryDto addCategory(@RequestBody @Valid NewCategoryDto newCategoryDto) {
+        return categoryService.addCategory(newCategoryDto);
     }
 
-    @DeleteMapping("/{catId}")
+    @DeleteMapping("/{categoryId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Long catId) {
-        categoryService.delete(catId);
+    public void deleteCategory(@PathVariable Long categoryId) {
+        categoryService.deleteCategory(categoryId);
     }
 }
 

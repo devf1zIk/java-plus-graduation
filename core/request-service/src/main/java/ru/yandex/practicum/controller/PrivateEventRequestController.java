@@ -1,8 +1,10 @@
 package ru.yandex.practicum.controller;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.dto.request.ParticipationRequestDto;
 import ru.yandex.practicum.dto.request.RequestStatusUpdateRequest;
@@ -13,6 +15,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(path = "/users/{userId}/events/{eventId}/requests")
+@Validated
 public class PrivateEventRequestController {
 
     private final RequestService requestService;
@@ -27,7 +30,7 @@ public class PrivateEventRequestController {
     @PatchMapping
     @ResponseStatus(HttpStatus.OK)
     public RequestStatusUpdateResponse updateRequest(@PathVariable @Positive Long userId, @PathVariable @Positive Long eventId,
-                                                     @RequestBody RequestStatusUpdateRequest request) {
+                                                     @RequestBody @Valid RequestStatusUpdateRequest request) {
         return requestService.updateRequest(userId, eventId, request);
     }
 }

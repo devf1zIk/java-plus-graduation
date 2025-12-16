@@ -10,6 +10,6 @@ import java.util.List;
 @AllArgsConstructor
 @RequiredArgsConstructor
 public class RequestStatusUpdateRequest {
-    private List<Long> requestIds;
-    private RequestStatus status;
+    List<Long> requestIds;
+    RequestStatus status;
 }

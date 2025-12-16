@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import ru.yandex.practicum.enums.RequestStatus;
 import java.time.LocalDateTime;
 
 @Entity
@@ -18,10 +19,10 @@ public class ParticipationRequest {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private LocalDateTime createdOn;
-    @Column(name = "eventId", nullable = false)
-    private long eventId;
+    @Column(name = "event_Id", nullable = false)
+    private Long eventId;
     @Column(name = "requesterId", nullable = false)
-    private long requesterId;
+    private Long requesterId;
     @Enumerated(EnumType.STRING)
-    private ru.yandex.practicum.enums.RequestStatus status;
+    private RequestStatus status;
 }

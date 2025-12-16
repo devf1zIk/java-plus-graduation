@@ -57,7 +57,7 @@ public class EventService {
     }
 
     public EventDto create(NewEventDto eventDto, Long userId) {
-        userClient.getUserShortById(userId);
+        userClient.getUser(userId);
         EventCategory category = categoryRepository.findById(eventDto.getCategory())
                 .orElseThrow(() -> new NotFoundException(
                         "Категория с id " + eventDto.getCategory() + "не существует!"));
@@ -72,8 +72,8 @@ public class EventService {
         } else {
             event.setLocation(saveLocation(new Location(-1L, 0.0, 0.0)));
         }
-        if (event.getIsPaid() == null) {
-            event.setIsPaid(false);
+        if (event.getPaid() == null) {
+            event.setPaid(false);
         }
         if (event.getParticipantLimit() == null) {
             event.setParticipantLimit(0L);
@@ -84,7 +84,7 @@ public class EventService {
         Event result = eventRepository.save(event);
 
         return EventMapper.fromEventToEventDto(result, EventCategoryMapper.toCategoryDtoFromCategory(category),
-                userClient.getUserShortById(userId), 0L, 0);
+                userClient.getUser(userId), 0L, 0);
     }
 
     public EventDto updateByAdmin(Long eventId, UpdateEventAdminDto updateEventDto) {
@@ -140,7 +140,8 @@ public class EventService {
 
 
     public List<EventDto> getAll(List<Long> users, List<String> states, List<Long> categories,
-                                 LocalDateTime rangeStart, LocalDateTime rangeEnd, Pageable pageable) {
+                                 LocalDateTime rangeStart, LocalDateTime rangeEnd, int from, int size) {
+        Pageable pageable = PageRequest.of(from / size, size);
         List<EventState> eventStates = new ArrayList<>();
         if (states != null) {
             for (String state : states) {
@@ -201,7 +202,7 @@ public class EventService {
 
     public EventDto updateByUser(ru.yandex.practicum.dto.event.UpdateEventUserRequest eventDto, Long userId, Long eventId) {
         Event event = getEventIfExist(eventId);
-        userClient.getUserShortById(userId);
+        userClient.getUser(userId);
 
         if (!Objects.equals(event.getInitiatorId(), userId)) {
             throw new NotFoundException("User с id " + userId + " не хозяин для события " + eventId);
@@ -228,7 +229,7 @@ public class EventService {
         if (eventDto.getDescription() != null && !eventDto.getDescription().isBlank()) {
             event.setDescription(eventDto.getDescription());
         }
-        updateEvent(event, eventDto.getEventDate(), LocationMapper.location(eventDto.getLocationDto()), eventDto.getPaid(),
+        updateEvent(event, eventDto.getEventDate(), LocationMapper.location(eventDto.getLocation()), eventDto.getPaid(),
                 eventDto.getParticipantLimit(), eventDto.getRequestModeration());
         if (eventDto.getStateAction() != null) {
             switch (eventDto.getStateAction()) {
@@ -259,7 +260,7 @@ public class EventService {
         } else {
             if (sort.equals("VIEWS") || sort.equals("EVENT_DATE") || sort.isBlank()) {
                 if (sort.equals("EVENT_DATE")) {
-                    paging = PageRequest.of((from) % size, size, Sort.by("eventDateTime")
+                    paging = PageRequest.of(from / size, size, Sort.by("eventDateTime")
                             .descending());
                 } else {
                     paging = PageRequest.of(from, size);
@@ -292,7 +293,7 @@ public class EventService {
     }
 
     public List<EventShortDto> getByUserId(Long userId, Pageable paging) {
-        userClient.getUserShortById(userId);
+        userClient.getUser(userId);
         List<Event> events = eventRepository.findAllByInitiatorId(userId, paging).stream().toList();
 
         return getEventsShorts(events);
@@ -300,7 +301,7 @@ public class EventService {
 
     public EventDto getEventByUserId(Long userId, Long eventId) {
         Event event = getEventIfExist(eventId);
-        userClient.getUserShortById(userId);
+        userClient.getUser(userId);
         if (!Objects.equals(event.getInitiatorId(), userId)) {
             throw new NotFoundException("User с id " + userId + " не хозяин события " + eventId);
         }
@@ -358,7 +359,7 @@ public class EventService {
             event.setLocation(location);
         }
         if (paid != null) {
-            event.setIsPaid(paid);
+            event.setPaid(paid);
         }
         if (participantLimit != null) {
             event.setParticipantLimit(participantLimit);
@@ -369,13 +370,13 @@ public class EventService {
     }
 
     private EventDto getEventDtoFromEvent(Event event) {
-        Long confirmedRequests = requestClient.getConfirmedRequestsCount(event.getId(), RequestStatus.CONFIRMED);
+        Long confirmedRequests = requestClient.countByStatus(event.getId(), RequestStatus.CONFIRMED);
         Integer views = getEventsViews(event.getId());
 
         return EventMapper.fromEventToEventDto(
                 event,
                 EventCategoryMapper.toCategoryDtoFromCategory(event.getCategory()),
-                userClient.getUserShortById(event.getInitiatorId()),confirmedRequests,
+                userClient.getUser(event.getInitiatorId()),confirmedRequests,
                 views
         );
     }
@@ -396,12 +397,12 @@ public class EventService {
         return events.stream()
                 .map(event -> {
                     Long confirmed =
-                            requestClient.getConfirmedRequestsCount(event.getId(), RequestStatus.CONFIRMED);
+                            requestClient.countByStatus(event.getId(), RequestStatus.CONFIRMED);
 
                     return EventMapper.fromEventToEventDto(
                             event,
                             EventCategoryMapper.toCategoryDtoFromCategory(event.getCategory()),
-                            userClient.getUserShortById(event.getInitiatorId()),
+                            userClient.getUser(event.getInitiatorId()),
                             confirmed,
                             viewsMap.getOrDefault(event.getId(), 0)
                     );
@@ -419,13 +420,12 @@ public class EventService {
 
         return events.stream()
                 .map(event -> {
-                    Long confirmed =
-                            requestClient.getConfirmedRequestsCount(event.getId(), RequestStatus.CONFIRMED);
+                    Long confirmed = requestClient.countByStatus(event.getId(), RequestStatus.CONFIRMED);
 
                     return EventMapper.fromEventToEventShortDto(
                             event,
                             EventCategoryMapper.toCategoryDtoFromCategory(event.getCategory()),
-                            userClient.getUserShortById(event.getInitiatorId()),
+                            userClient.getUser(event.getInitiatorId()),
                             confirmed,
                             viewsMap.getOrDefault(event.getId(), 0)
                     );

@@ -2,6 +2,7 @@ package ru.yandex.practicum.mapper;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import ru.yandex.practicum.dto.user.NewUserRequestDto;
 import ru.yandex.practicum.dto.user.UserFullDto;
 import ru.yandex.practicum.dto.user.UserShortDto;
 import ru.yandex.practicum.model.User;
@@ -26,7 +27,11 @@ public class UserMapper {
         return userShortDto;
     }
 
-    public static User toUserFromUserDto(UserFullDto userFullDto) {
-        return new User(userFullDto.getId(), userFullDto.getName(), userFullDto.getEmail());
+    public UserFullDto toUserFullDto(User user) {
+        return toUserDtoFromUser(user);
+    }
+
+    public static User toUserFromUserDto(NewUserRequestDto newUserRequestDto) {
+        return new User(0L,newUserRequestDto.getName(), newUserRequestDto.getEmail());
     }
 }

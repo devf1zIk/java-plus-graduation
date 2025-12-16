@@ -3,7 +3,8 @@ package ru.yandex.practicum.main.category.controller;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.dto.category.CategoryDto;
 import ru.yandex.practicum.main.category.service.EventCategoryService;
@@ -11,6 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping(path = "/categories")
+@Validated
 public class EventCategoryPublicController {
 
     private final EventCategoryService categoryService;
@@ -21,13 +23,15 @@ public class EventCategoryPublicController {
     }
 
     @GetMapping
-    public List<CategoryDto> getCategories(@PositiveOrZero @RequestParam(value = "from", defaultValue = "0") int from,
+    @ResponseStatus(HttpStatus.OK)
+    public List<CategoryDto> getAllCategories(@PositiveOrZero @RequestParam(value = "from", defaultValue = "0") int from,
                                            @Positive @RequestParam(value = "size", defaultValue = "10") int size) {
-        return categoryService.getAll(PageRequest.of(from, size));
+        return categoryService.getAllCategories(from, size);
     }
 
-    @GetMapping("/{catId}")
-    public CategoryDto getCategory(@PathVariable long catId) {
-        return categoryService.getById(catId);
+    @GetMapping("/{categoryId}")
+    @ResponseStatus(HttpStatus.OK)
+    public CategoryDto getCategoryById(@PathVariable Long categoryId) {
+        return categoryService.getCategoryById(categoryId);
     }
 }

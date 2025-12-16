@@ -28,7 +28,7 @@ public class EventMapper {
                 now().toInstant(ZoneOffset.UTC),
                 newEventDto.getEventDate().toInstant(ZoneOffset.UTC),
                 0L,
-                LocationMapper.location(newEventDto.getLocationDto()),
+                LocationMapper.location(newEventDto.getLocation()),
                 newEventDto.getPaid(),
                 newEventDto.getParticipantLimit(),
                 null,
@@ -47,7 +47,7 @@ public class EventMapper {
                 ofInstant(event.getEventDateTime(), ZoneId.of("UTC")),
                 owner,
                 LocationMapper.locationDto(event.getLocation()),
-                event.getIsPaid(),
+                event.getPaid(),
                 event.getParticipantLimit(),
                 null,
                 event.getIsModerated(),
@@ -69,7 +69,7 @@ public class EventMapper {
                 confirmedRequests,
                 ofInstant(event.getEventDateTime(), ZoneId.of("UTC")),
                 owner,
-                event.getIsPaid(),
+                event.getPaid(),
                 event.getTitle(),
                 views);
     }
