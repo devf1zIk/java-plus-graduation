@@ -19,7 +19,7 @@ public class ParticipationRequest {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private LocalDateTime createdOn;
-    @Column(name = "event_Id", nullable = false)
+    @Column(name = "event_id", nullable = false)
     private Long eventId;
     @Column(name = "requester_id", nullable = false)
     private Long requesterId;

@@ -4,10 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 import ru.yandex.practicum.enums.AdminEventAction;
 import java.time.LocalDateTime;
@@ -15,6 +12,7 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 @RequiredArgsConstructor
+@Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UpdateEventAdminDto {
 
@@ -26,7 +24,7 @@ public class UpdateEventAdminDto {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     @Future(message = "Дата события должна быть в будущем")
     LocalDateTime eventDate;
-    LocationDto locationDto;
+    LocationDto location;
     Boolean paid;
     @PositiveOrZero(message = "Лимит участников должен быть положительным числом или нулём")
     Long participantLimit;

@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class EventDto {
 
-    long id;
+    Long id;
 
     @NotBlank
     @Size(min = 20, max = 2000)

@@ -16,7 +16,7 @@ public class NewCompilationDto {
     @Builder.Default
     Boolean pinned = false;
 
-    @NotBlank(message = "Название подборки не может быть пустым")
+    @NotBlank(message = "Title не может быть пустым")
     @Size(max = 50, message = "Название подборки должно быть до 50 символов")
     String title;
 

@@ -10,11 +10,9 @@ import ru.yandex.practicum.main.event.model.Event;
 public interface CommentMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "authorId", source = "userId")
-    @Mapping(target = "event", source = "event")
     @Mapping(target = "createdAt", ignore = true)
     Comment requestToComment(MergeCommentRequest commentRequest, Event event, Long userId);
 
-    @Mapping(target = "authorId", source = "authorId")
     CommentDto commentToResponse(Comment comment);
 
     @Mapping(target = "id", ignore = true)

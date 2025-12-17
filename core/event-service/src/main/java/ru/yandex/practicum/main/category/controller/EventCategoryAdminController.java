@@ -21,14 +21,14 @@ public class EventCategoryAdminController {
     }
 
     @PatchMapping("/{catid}")
-    public CategoryDto updateCategory(@PathVariable Long categoryId,
+    public CategoryDto updateCategory(@PathVariable("catid") Long categoryId,
                                       @Valid @RequestBody NewCategoryDto dto) {
         return categoryService.updateCategory(categoryId, dto);
     }
 
     @DeleteMapping("/{catid}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteCategory(@PathVariable Long categoryId) {
+    public void deleteCategory(@PathVariable("catid") Long categoryId) {
         categoryService.deleteCategory(categoryId);
     }
 }

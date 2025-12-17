@@ -25,7 +25,7 @@ public class EventCategoryPublicController {
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public List<CategoryDto> getAllCategories(@PositiveOrZero @RequestParam(value = "from", defaultValue = "0") int from,
-                                           @Positive @RequestParam(value = "size", defaultValue = "10") int size) {
+                                              @Positive @RequestParam(value = "size", defaultValue = "10") int size) {
         return categoryService.getAllCategories(from, size);
     }
 

@@ -10,7 +10,7 @@ public class RequestClientFallback implements RequestOperations{
 
     @Override
     public Long countByStatus(Long eventId, RequestStatus status) {
-        log.warn("Request service is unavailable. Fallback: returning 0 for event ID: {},status:{}", eventId);
+        log.warn("Request service is unavailable. Fallback: returning 0 for event ID: {}, status: {}", eventId, status);
         return 0L;
     }
 }

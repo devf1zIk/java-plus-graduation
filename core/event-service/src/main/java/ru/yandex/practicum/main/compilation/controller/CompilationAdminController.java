@@ -1,6 +1,7 @@
 package ru.yandex.practicum.main.compilation.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -31,12 +32,12 @@ public class CompilationAdminController {
 
     @DeleteMapping("/{compId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteCompilation(@PathVariable Long compId) {
+    public void deleteCompilation(@PathVariable @Positive Long compId) {
         compilationService.deleteCompilation(compId);
     }
 
     @PatchMapping("/{compId}")
-    public CompilationDto updateCompilation(@PathVariable Long compId,
+    public CompilationDto updateCompilation(@PathVariable @Positive Long compId,
                                             @RequestBody @Valid CompilationRequestDto updateCompilationRequest) {
         return compilationService.updateCompilation(compId, updateCompilationRequest);
     }

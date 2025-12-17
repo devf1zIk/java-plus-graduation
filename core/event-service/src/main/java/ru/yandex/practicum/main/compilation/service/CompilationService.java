@@ -48,7 +48,7 @@ public class CompilationService {
     }
 
     public List<CompilationDto> getAll(boolean pinned, int from, int size) {
-        Pageable pageable = PageRequest.of(from / size, size);
+        Pageable pageable = PageRequest.of(from, size);
         List<Compilation> compilations = compilationRepository
                 .getAllByPinned(pinned, pageable).stream().toList();
         List<CompilationDto> result = new ArrayList<>();
@@ -82,9 +82,6 @@ public class CompilationService {
         Set<Long> eventIds = new HashSet<>();
         if (newCompilationDto.getEvents() != null) {
             eventIds.addAll(newCompilationDto.getEvents());
-        }
-        if (newCompilationDto.getTitle() == null || newCompilationDto.getTitle().isEmpty() || newCompilationDto.getTitle().isBlank()) {
-            throw new BadRequestException("Title не может быть пустым");
         }
         Set<Event> eventSet = new HashSet<>();
         Set<EventShortDto> items = new HashSet<>();

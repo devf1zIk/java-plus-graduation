@@ -5,7 +5,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import ru.yandex.practicum.enums.EventState;
-import ru.yandex.practicum.main.category.model.EventCategory;
 import ru.yandex.practicum.main.event.model.Event;
 import java.time.Instant;
 import java.util.List;
@@ -14,7 +13,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     Page<Event> findAllByInitiatorId(Long initiatorId, Pageable pageable);
 
-    Boolean findByCategoryId(Long categoryId);
+    boolean existsByCategoryId(Long categoryId);
 
     @Query("""
         SELECT e FROM Event e

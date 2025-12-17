@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UpdateEventUserRequest {
 
-    @Size(min = 20, max = 7000, message = "Описание должно быть длиной от 20 до 7000 символов")
+    @Size(min = 20, max = 2000, message = "Длина аннотации должна быть от 20 до 2000 символов")
     String annotation;
     Long category;
     @Size(min = 20, max = 7000, message = "Описание должно быть длиной от 20 до 7000 символов")

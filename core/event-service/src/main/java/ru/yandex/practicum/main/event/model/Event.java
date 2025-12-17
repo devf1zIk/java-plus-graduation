@@ -13,6 +13,7 @@ import java.time.Instant;
 @Getter
 @Setter
 @Builder
+@NoArgsConstructor
 @AllArgsConstructor
 @RequiredArgsConstructor
 public class Event {
@@ -38,14 +39,14 @@ public class Event {
 
     @Column(name = "confirmed_requests")
     @Builder.Default
-    private Integer confirmedRequests = 0;
+    private Long confirmedRequests = 0L;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "location_id")
     private Location location;
     @Column(nullable = false)
     @Builder.Default
-    private Boolean paid= false;
+    private Boolean paid = false;
     private Long participantLimit;
     private Instant publishedOn;
     private Boolean isModerated;

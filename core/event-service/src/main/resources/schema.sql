@@ -49,7 +49,8 @@ CREATE TABLE event_compilations (
                                     compilation_id BIGINT NOT NULL,
                                     event_id BIGINT NOT NULL,
                                     CONSTRAINT fk_compilation FOREIGN KEY (compilation_id) REFERENCES compilations (id),
-                                    CONSTRAINT fk_event FOREIGN KEY (event_id) REFERENCES events (id)
+                                    CONSTRAINT fk_event FOREIGN KEY (event_id) REFERENCES events (id),
+                                    CONSTRAINT uq_compilation_event UNIQUE (compilation_id, event_id)
 );
 
 CREATE TABLE comments (

@@ -33,6 +33,9 @@ public class CommentService {
 
     public CommentDto createComment(MergeCommentRequest mergeCommentRequest, Long userId) {
         UserShortDto user = userClient.getUser(userId);
+        if (user == null) {
+            throw new NotFoundException(String.format("User with id=%d not found or service unavailable", userId));
+        }
         Event event = findEventById(mergeCommentRequest.getEventId());
 
         if (!event.getState().equals(EventState.PUBLISHED)) {

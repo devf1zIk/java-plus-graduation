@@ -3,6 +3,7 @@ package ru.yandex.practicum.exception.controller;
 import feign.FeignException;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -79,24 +80,27 @@ public class ExceptionApiHandler {
     }
 
     @ExceptionHandler(FeignException.class)
-    public ApiError handleFeignException(FeignException e) {
+    public ResponseEntity<ApiError> handleFeignException(FeignException e) {
         log.warn("FeignException. Status: {}, Message: {}", e.status(), e.getMessage());
 
         if (e.status() == NOT_FOUND.value()) {
-            String message = "Пользователь не найден";
-            if (e.request() != null && e.request().url().contains("/users/")) {
-                message = "Пользователь не найден";
-            } else if (e.request() != null && e.request().url().contains("/events/")) {
+            String message = "Ресурс не найден";
+            if (e.request() != null && e.request().url().contains("/events/")) {
                 message = "Событие не найдено";
+            } else if (e.request() != null && e.request().url().contains("/users/")) {
+                message = "Пользователь не найден";
             }
-            return new ApiError(message, "Resource not found in external service", NOT_FOUND.toString());
+            return ResponseEntity.status(NOT_FOUND)
+                    .body(new ApiError(message, "Resource not found in external service", NOT_FOUND.toString()));
         }
 
         if (e.status() >= 500) {
-            return new ApiError("Внутренняя ошибка микросервиса", "Internal service error", INTERNAL_SERVER_ERROR.toString());
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                    .body(new ApiError("Внутренняя ошибка микросервиса", "Internal service error", INTERNAL_SERVER_ERROR.toString()));
         }
 
-        return new ApiError("Ошибка при вызове микросервиса", "Service unavailable", SERVICE_UNAVAILABLE.toString());
+        return ResponseEntity.status(SERVICE_UNAVAILABLE)
+                    .body(new ApiError("Ошибка при вызове микросервиса", "Service unavailable", SERVICE_UNAVAILABLE.toString()));
     }
 
     @ExceptionHandler(feign.FeignException.ServiceUnavailable.class)
@@ -140,5 +144,12 @@ public class ExceptionApiHandler {
     public ApiError handleIllegalArgument(IllegalArgumentException e) {
         log.warn("Bad request due to invalid argument: {}", e.getMessage());
         return new ApiError(e.getMessage(), "Некорректные параметры запроса", BAD_REQUEST.toString());
+    }
+
+    @ExceptionHandler(ServiceUnavailableException.class)
+    @ResponseStatus(SERVICE_UNAVAILABLE)
+    public ApiError handleServiceUnavailable(ServiceUnavailableException e) {
+        log.error("Service unavailable: {}", e.getMessage());
+        return new ApiError(e.getMessage(), "Service unavailable", SERVICE_UNAVAILABLE.toString());
     }
 }

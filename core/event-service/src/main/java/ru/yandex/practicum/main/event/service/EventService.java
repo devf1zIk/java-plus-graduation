@@ -66,11 +66,9 @@ public class EventService {
 
         validateEventDate(dto.getEventDate(), false);
 
-        Event event = EventMapper.fromCreateNewEventDtoToEvent(dto, category);
-        event.setLocation(saveLocation(event.getLocation() != null ? event.getLocation() : new Location(-1L, 0.0, 0.0)));
-        event.setPaid(dto.getPaid() != null ? dto.getPaid() : false);
-        event.setParticipantLimit(dto.getParticipantLimit() != null ? dto.getParticipantLimit() : 0L);
-        event.setIsModerated(dto.getRequestModeration() != null ? dto.getRequestModeration() : true);
+        Event event = EventMapper.fromCreateNewEventDtoToEvent(dto, category, userId);
+        event.setInitiatorId(userId);
+        event.setLocation(saveLocation(event.getLocation() != null ? event.getLocation() : new Location(null, 0.0, 0.0)));
 
         Event saved = eventRepository.save(event);
 
@@ -114,8 +112,10 @@ public class EventService {
 
     public List<EventDto> getAll(List<Long> users, List<String> states, List<Long> categories,
                                  LocalDateTime rangeStart, LocalDateTime rangeEnd, int from, int size) {
+        if (size <= 0) {
+            throw new BadRequestException("Параметр size должен быть положительным");
+        }
         Pageable pageable = PageRequest.of(from / size, size);
-
         List<EventState> eventStates = states == null ? null :
                 states.stream().map(EventState::valueOf).toList();
 
@@ -261,7 +261,7 @@ public class EventService {
             if (adminDto.getAnnotation() != null) event.setAnnotation(adminDto.getAnnotation());
             if (adminDto.getDescription() != null) event.setDescription(adminDto.getDescription());
             if (adminDto.getTitle() != null) event.setTitle(adminDto.getTitle());
-            updateCommonFields(event, adminDto.getEventDate(), adminDto.getLocationDto(), adminDto.getPaid(),
+            updateCommonFields(event, adminDto.getEventDate(), adminDto.getLocation(), adminDto.getPaid(),
                     adminDto.getParticipantLimit(), adminDto.getRequestModeration());
         } else if (dto instanceof UpdateEventUserRequest userDto) {
             if (userDto.getCategory() != null) {

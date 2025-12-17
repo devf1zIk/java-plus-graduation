@@ -40,7 +40,7 @@ public class RequestService {
         }
         List<ParticipationRequest> result = requestRepository.findByEventId(eventId);
 
-        return result.stream().map(RequestMapper::fromRequestTpRequestDto).toList();
+        return result.stream().map(RequestMapper::fromRequestToRequestDto).toList();
     }
 
     public RequestStatusUpdateResponse updateRequest(Long userId, Long eventId, RequestStatusUpdateRequest request) {
@@ -61,7 +61,7 @@ public class RequestService {
         if (!eventDto.getRequestModeration() || eventDto.getParticipantLimit() == 0) {
             requests.forEach(req -> req.setStatus(RequestStatus.CONFIRMED));
             result.getConfirmedRequests().addAll(requests.stream()
-                    .map(RequestMapper::fromRequestTpRequestDto)
+                    .map(RequestMapper::fromRequestToRequestDto)
                     .toList());
             requestRepository.saveAll(requests);
 
@@ -74,7 +74,7 @@ public class RequestService {
         if ((confirmedRequestsCount + request.getRequestIds().size()) == eventDto.getParticipantLimit() &&
                 request.getStatus().equals(RequestStatus.CONFIRMED)) {
             requests.forEach(req -> req.setStatus(RequestStatus.REJECTED));
-            confirmed.addAll(requests.stream().map(RequestMapper::fromRequestTpRequestDto).toList());
+            confirmed.addAll(requests.stream().map(RequestMapper::fromRequestToRequestDto).toList());
             requestRepository.saveAll(requests);
             result.setConfirmedRequests(confirmed);
 
@@ -82,19 +82,19 @@ public class RequestService {
                     .findAllByEventIdAndStatus(eventId, RequestStatus.PENDING);
             otherPendingRequests.forEach(req -> req.setStatus(RequestStatus.REJECTED));
             requestRepository.saveAll(otherPendingRequests);
-            rejected.addAll(otherPendingRequests.stream().map(RequestMapper::fromRequestTpRequestDto).toList());
+            rejected.addAll(otherPendingRequests.stream().map(RequestMapper::fromRequestToRequestDto).toList());
             result.setRejectedRequests(rejected);
             return result;
         }
 
         if (request.getStatus().equals(RequestStatus.CONFIRMED)) {
             requests.forEach(req -> req.setStatus(RequestStatus.CONFIRMED));
-            confirmed.addAll(requests.stream().map(RequestMapper::fromRequestTpRequestDto).toList());
+            confirmed.addAll(requests.stream().map(RequestMapper::fromRequestToRequestDto).toList());
             requestRepository.saveAll(requests);
             result.setConfirmedRequests(confirmed);
         } else if (request.getStatus().equals(RequestStatus.REJECTED)) {
             requests.forEach(req -> req.setStatus(RequestStatus.REJECTED));
-            rejected.addAll(requests.stream().map(RequestMapper::fromRequestTpRequestDto).toList());
+            rejected.addAll(requests.stream().map(RequestMapper::fromRequestToRequestDto).toList());
             requestRepository.saveAll(requests);
             result.setRejectedRequests(rejected);
         }
@@ -105,7 +105,7 @@ public class RequestService {
     public List<ParticipationRequestDto> getUserRequests(Long userId) {
         List<ParticipationRequest> result = requestRepository.findAllByRequesterId(userClient.getUser(userId).getId());
 
-        return result.stream().map(RequestMapper::fromRequestTpRequestDto).toList();
+        return result.stream().map(RequestMapper::fromRequestToRequestDto).toList();
 
     }
 
@@ -141,7 +141,7 @@ public class RequestService {
         }
         ParticipationRequest result = requestRepository.save(request);
 
-        return RequestMapper.fromRequestTpRequestDto(result);
+        return RequestMapper.fromRequestToRequestDto(result);
     }
 
     public ParticipationRequestDto cancelRequest(Long userId, Long requestId) {
@@ -155,6 +155,10 @@ public class RequestService {
         request.setStatus(RequestStatus.CANCELED);
         ParticipationRequest result = requestRepository.save(request);
 
-        return RequestMapper.fromRequestTpRequestDto(result);
+        return RequestMapper.fromRequestToRequestDto(result);
+    }
+
+    public Long countByEventIdAndStatus(Long eventId, RequestStatus status) {
+        return requestRepository.countByEventIdAndStatus(eventId, status);
     }
 }

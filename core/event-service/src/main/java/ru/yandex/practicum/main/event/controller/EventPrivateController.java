@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.client.StatsClient;
 import ru.yandex.practicum.dto.HitDto;
@@ -21,6 +22,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping(path = "/users")
+@Validated
 public class EventPrivateController {
 
     private final EventService eventService;
@@ -46,7 +48,7 @@ public class EventPrivateController {
 
     @PostMapping("/{userId}/events")
     @ResponseStatus(HttpStatus.CREATED)
-    public EventDto createEvent(@RequestBody @Valid NewEventDto newEventDto, @PathVariable Long userId) {
+    public EventDto createEvent(@RequestBody @Valid NewEventDto newEventDto, @PathVariable @Positive Long userId) {
         return eventService.create(newEventDto, userId);
     }
 

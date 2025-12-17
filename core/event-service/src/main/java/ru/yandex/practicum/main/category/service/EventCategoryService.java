@@ -38,8 +38,10 @@ public class EventCategoryService {
     public CategoryDto updateCategory(Long categoryId, NewCategoryDto dto) {
         EventCategory category = getCategoryIfExist(categoryId);
 
-        String newName = dto.getName().trim();
-
+        String newName = dto.getName() != null ? dto.getName().trim() : null;
+        if (newName == null || newName.isEmpty()) {
+            throw new IllegalArgumentException("Имя категории не может быть пустым");
+        }
         if (categoryRepository.existsByNameAndIdNot(newName, categoryId)) {
             throw new AlreadyExistsException("Категория с именем '" + newName + "' уже существует");
         }
@@ -67,7 +69,7 @@ public class EventCategoryService {
     public void deleteCategory(Long categoryId) {
         EventCategory category = getCategoryIfExist(categoryId);
 
-        if (eventRepository.findByCategoryId(categoryId)) {
+        if (eventRepository.existsByCategoryId(categoryId)) {
             throw new ConflictException("Нельзя удалить категорию, у которой есть связанные события");
         }
         categoryRepository.delete(category);

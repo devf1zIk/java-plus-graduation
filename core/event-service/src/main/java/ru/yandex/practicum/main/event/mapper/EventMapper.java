@@ -16,17 +16,18 @@ import static java.time.LocalDateTime.ofInstant;
 @NoArgsConstructor
 public class EventMapper {
 
+    private static final ZoneId UTC_ZONE = ZoneId.of("UTC");
 
     public static Event fromCreateNewEventDtoToEvent(NewEventDto newEventDto,
-                                                     EventCategory category) {
+                                                     EventCategory category,Long userId) {
         return Event.builder()
                 .title(newEventDto.getTitle())
                 .annotation(newEventDto.getAnnotation())
                 .description(newEventDto.getDescription())
                 .category(category)
-                .createdOn(now().atZone(ZoneId.of("UTC")).toInstant())
-                .eventDateTime(newEventDto.getEventDate().atZone(ZoneId.of("UTC")).toInstant())
-                .initiatorId(0L)
+                .createdOn(now().atZone(UTC_ZONE).toInstant())
+                .eventDateTime(newEventDto.getEventDate().atZone(UTC_ZONE).toInstant())
+                .initiatorId(userId)
                 .location(LocationMapper.location(newEventDto.getLocation()))
                 .paid(newEventDto.getPaid() != null ? newEventDto.getPaid() : false)
                 .participantLimit(newEventDto.getParticipantLimit() != null ? newEventDto.getParticipantLimit() : 0L)

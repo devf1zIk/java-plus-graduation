@@ -1,7 +1,7 @@
 package ru.yandex.practicum.controller;
 
 import jakarta.validation.constraints.Positive;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -11,15 +11,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping(path = "/users")
+@RequiredArgsConstructor
 @Validated
 public class PrivateRequestController {
 
     private final RequestService requestService;
-
-    @Autowired
-    public PrivateRequestController(RequestService requestService) {
-        this.requestService = requestService;
-    }
 
     @GetMapping("/{userId}/requests")
     @ResponseStatus(HttpStatus.OK)

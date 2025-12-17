@@ -1,6 +1,7 @@
 package ru.yandex.practicum.dto.event;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -9,7 +10,7 @@ import java.time.LocalDateTime;
 @Builder
 @Data
 @AllArgsConstructor
-@RequiredArgsConstructor
+@NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class NewEventDto {
 
@@ -26,6 +27,7 @@ public class NewEventDto {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     LocalDateTime eventDate;
     @NotNull(message = "Поле location не может быть пустым")
+    @Valid
     LocationDto location;
     @Builder.Default
     Boolean paid = false;
@@ -33,7 +35,7 @@ public class NewEventDto {
     @PositiveOrZero(message = "Лимит участников должен быть положительным числом или нулём")
     Long participantLimit = 0L;
     @Builder.Default
-    Boolean requestModeration=true;
+    Boolean requestModeration = true;
     @NotBlank(message = "Поле title не может быть пустым")
     @Size(min = 3, max = 120, message = "Поле title должно быть от 3 до 120 символов")
     String title;
