@@ -14,6 +14,7 @@ import ru.yandex.practicum.dto.user.UserShortDto;
 import ru.yandex.practicum.enums.EventState;
 import ru.yandex.practicum.exception.model.NotFoundException;
 import ru.yandex.practicum.exception.model.PublicationException;
+import ru.yandex.practicum.exception.model.ServiceUnavailableException;
 import ru.yandex.practicum.main.comment.mapper.CommentMapper;
 import ru.yandex.practicum.main.comment.model.Comment;
 import ru.yandex.practicum.main.comment.repository.CommentRepository;
@@ -32,20 +33,24 @@ public class CommentService {
     private final EventRepository eventRepository;
 
     public CommentDto createComment(MergeCommentRequest mergeCommentRequest, Long userId) {
-        UserShortDto user = userClient.getUser(userId);
-        if (user == null) {
+        try {
+            UserShortDto user = userClient.getUser(userId);
+            if (user == null) {
+                throw new ServiceUnavailableException("User service is unavailable");
+            }
+            Event event = findEventById(mergeCommentRequest.getEventId());
+
+            if (!event.getState().equals(EventState.PUBLISHED)) {
+                throw new PublicationException("Event must be published");
+            }
+
+            Comment comment = commentMapper.requestToComment(mergeCommentRequest, event, user.getId());
+            CommentDto response = commentMapper.commentToResponse(commentRepository.save(comment));
+            log.info("Comment id={} was created by user id={}", response.getId(), response.getAuthorId());
+            return response;
+        } catch (ServiceUnavailableException e) {
             throw new NotFoundException(String.format("User with id=%d not found or service unavailable", userId));
         }
-        Event event = findEventById(mergeCommentRequest.getEventId());
-
-        if (!event.getState().equals(EventState.PUBLISHED)) {
-            throw new PublicationException("Event must be published");
-        }
-
-        Comment comment = commentMapper.requestToComment(mergeCommentRequest, event, user.getId());
-        CommentDto response = commentMapper.commentToResponse(commentRepository.save(comment));
-        log.info("Comment id={} was created by user id={}", response.getId(), response.getAuthorId());
-        return response;
     }
 
     public void deleteCommentByIdAndAuthor(Long commentId, Long userId) {

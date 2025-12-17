@@ -99,7 +99,7 @@ public class ExceptionApiHandler {
                     .body(new ApiError("Некорректный запрос к микросервису", "Bad request to external service", String.valueOf(e.status())));
         }
         if (e.status() == SERVICE_UNAVAILABLE.value()) {
-            log.warn("Unexpected FeignException status: {}", e.status());
+            log.warn("Service temporarily unavailable");
             return ResponseEntity.status(SERVICE_UNAVAILABLE)
                   .body(new ApiError("Микросервис временно недоступен", "Service unavailable", SERVICE_UNAVAILABLE.toString()));
         }

@@ -50,6 +50,9 @@ public class CompilationService {
 
     public List<CompilationDto> getAll(boolean pinned, int from, int size) {
         Pageable pageable = PageRequest.of(from / size, size);
+        if (size <= 0) {
+            throw new IllegalArgumentException("Размер страницы должен быть положительным");
+        }
         List<Compilation> compilations = compilationRepository
                 .getAllByPinned(pinned, pageable).stream().toList();
         List<CompilationDto> result = new ArrayList<>();

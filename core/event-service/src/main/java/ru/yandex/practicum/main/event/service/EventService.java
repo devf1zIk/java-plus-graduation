@@ -240,6 +240,8 @@ public class EventService {
             }
         } catch (FeignException.NotFound e) {
             throw new NotFoundException("Пользователь с id=" + userId + " не найден");
+        } catch (ServiceUnavailableException e) {
+            throw new ServiceUnavailableException("User service is unavailable");
         }
     }
 
@@ -353,19 +355,22 @@ public class EventService {
             confirmed = 0L;
         }
         Integer views = getEventsViewsMap(List.of(event.getId())).getOrDefault(event.getId(), 0);
+        try {
+            var initiator = userClient.getUser(event.getInitiatorId());
+            if (initiator == null) {
+                throw new ServiceUnavailableException("User service is unavailable");
+            }
 
-        var initiator = userClient.getUser(event.getInitiatorId());
-        if (initiator == null) {
+            return EventMapper.fromEventToEventDto(
+                    event,
+                    EventCategoryMapper.toCategoryDtoFromCategory(event.getCategory()),
+                    initiator,
+                    confirmed,
+                    views
+            );
+        } catch (ServiceUnavailableException e) {
             throw new ServiceUnavailableException("User service is unavailable");
         }
-
-        return EventMapper.fromEventToEventDto(
-                event,
-                EventCategoryMapper.toCategoryDtoFromCategory(event.getCategory()),
-                initiator,
-                confirmed,
-                views
-        );
     }
 
     private List<EventDto> getEventsFulls(List<Event> events) {
@@ -398,13 +403,21 @@ public class EventService {
         return events.stream()
                 .map(e -> {
                     Long confirmed = requestClient.countByStatus(e.getId(), RequestStatus.CONFIRMED);
-                    return EventMapper.fromEventToEventShortDto(
-                            e,
-                            EventCategoryMapper.toCategoryDtoFromCategory(e.getCategory()),
-                            userClient.getUser(e.getInitiatorId()),
-                            confirmed,
-                            viewsMap.getOrDefault(e.getId(), 0)
-                    );
+                    try {
+                        UserShortDto user = userClient.getUser(e.getInitiatorId());
+                        if (user == null) {
+                            throw new ServiceUnavailableException("User service is unavailable");
+                        }
+                        return EventMapper.fromEventToEventShortDto(
+                                e,
+                                EventCategoryMapper.toCategoryDtoFromCategory(e.getCategory()),
+                                user,
+                                confirmed,
+                                viewsMap.getOrDefault(e.getId(), 0)
+                        );
+                    } catch (ServiceUnavailableException ex) {
+                        throw new ServiceUnavailableException("User service is unavailable");
+                    }
                 })
                 .toList();
     }
