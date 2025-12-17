@@ -21,7 +21,7 @@ public class ParticipationRequest {
     private LocalDateTime createdOn;
     @Column(name = "event_Id", nullable = false)
     private Long eventId;
-    @Column(name = "requesterId", nullable = false)
+    @Column(name = "requester_id", nullable = false)
     private Long requesterId;
     @Enumerated(EnumType.STRING)
     private RequestStatus status;
