@@ -19,7 +19,7 @@ public class UserMapper {
     }
 
     public static UserShortDto fromUserToUserShortDto(User user) {
-        UserShortDto userShortDto = new UserShortDto(-1, user.getName());
+        UserShortDto userShortDto = new UserShortDto(null, user.getName());
         if (user.getId() != null) {
             userShortDto.setId(user.getId());
         }
