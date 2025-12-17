@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.client.StatsClient;
 import ru.yandex.practicum.client.request.RequestClient;
 import ru.yandex.practicum.client.user.UserClient;
+import ru.yandex.practicum.dto.compilation.NewCompilationDto;
 import ru.yandex.practicum.enums.RequestStatus;
 import ru.yandex.practicum.exception.model.BadRequestException;
 import ru.yandex.practicum.exception.model.NotFoundException;
@@ -77,12 +78,12 @@ public class CompilationService {
         return CompilationMapper.toDtoFromCompilation(compilation, items);
     }
 
-    public CompilationDto create(CompilationRequestDto compilationDto) {
+    public CompilationDto create(NewCompilationDto newCompilationDto) {
         Set<Long> eventIds = new HashSet<>();
-        if (compilationDto.getEvents() != null) {
-            eventIds.addAll(compilationDto.getEvents());
+        if (newCompilationDto.getEvents() != null) {
+            eventIds.addAll(newCompilationDto.getEvents());
         }
-        if (compilationDto.getTitle() == null || compilationDto.getTitle().isEmpty() || compilationDto.getTitle().isBlank()) {
+        if (newCompilationDto.getTitle() == null || newCompilationDto.getTitle().isEmpty() || newCompilationDto.getTitle().isBlank()) {
             throw new BadRequestException("Title не может быть пустым");
         }
         Set<Event> eventSet = new HashSet<>();
@@ -96,8 +97,8 @@ public class CompilationService {
             }
         }
 
-        Compilation compilationToSave = CompilationMapper.toCompilationFromDto(compilationDto, eventSet);
-        if (compilationDto.getPinned() == null) {
+        Compilation compilationToSave = CompilationMapper.toCompilationFromDto(newCompilationDto, eventSet);
+        if (newCompilationDto.getPinned() == null) {
             compilationToSave.setPinned(false);
         }
         Compilation compilation = compilationRepository.save(compilationToSave);

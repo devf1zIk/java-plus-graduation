@@ -2,7 +2,7 @@ package ru.yandex.practicum.main.compilation.mapper;
 
 import lombok.NoArgsConstructor;
 import ru.yandex.practicum.dto.compilation.CompilationDto;
-import ru.yandex.practicum.dto.compilation.CompilationRequestDto;
+import ru.yandex.practicum.dto.compilation.NewCompilationDto;
 import ru.yandex.practicum.main.compilation.model.Compilation;
 import ru.yandex.practicum.dto.event.EventShortDto;
 import ru.yandex.practicum.main.event.model.Event;
@@ -16,7 +16,7 @@ public class CompilationMapper {
         return new CompilationDto(eventDto, compilation.getId(), compilation.getPinned(), compilation.getTitle());
     }
 
-    public static Compilation toCompilationFromDto(CompilationRequestDto compilationDto, Set<Event> eventsList) {
+    public static Compilation toCompilationFromDto(NewCompilationDto compilationDto, Set<Event> eventsList) {
 
         return new Compilation(null, eventsList, compilationDto.getPinned(), compilationDto.getTitle());
     }

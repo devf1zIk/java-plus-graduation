@@ -7,6 +7,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.dto.compilation.CompilationDto;
 import ru.yandex.practicum.dto.compilation.CompilationRequestDto;
+import ru.yandex.practicum.dto.compilation.NewCompilationDto;
 import ru.yandex.practicum.main.compilation.service.CompilationService;
 
 
@@ -24,8 +25,8 @@ public class CompilationAdminController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public CompilationDto createCompilation(@RequestBody @Valid CompilationRequestDto compilationDto) {
-        return compilationService.create(compilationDto);
+    public CompilationDto createCompilation(@RequestBody @Valid NewCompilationDto newCompilationDto) {
+        return compilationService.create(newCompilationDto);
     }
 
     @DeleteMapping("/{compId}")

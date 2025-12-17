@@ -12,6 +12,6 @@ import java.util.Set;
 public class CompilationRequestDto {
     private Set<Long> events;
     private Boolean pinned;
-    @Size(max = 50)
+    @Size(min = 1, max = 50, message = "Название подборки должно быть от 1 до 50 символов")
     private String title;
 }

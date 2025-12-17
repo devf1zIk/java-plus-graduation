@@ -10,7 +10,6 @@ import ru.yandex.practicum.dto.event.EventDto;
 import ru.yandex.practicum.dto.event.EventShortDto;
 import ru.yandex.practicum.main.event.model.Event;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import static java.time.LocalDateTime.now;
 import static java.time.LocalDateTime.ofInstant;
 
@@ -20,20 +19,21 @@ public class EventMapper {
 
     public static Event fromCreateNewEventDtoToEvent(NewEventDto newEventDto,
                                                      EventCategory category) {
-        return new Event(null,
-                newEventDto.getTitle(),
-                newEventDto.getAnnotation(),
-                newEventDto.getDescription(),
-                category,
-                now().toInstant(ZoneOffset.UTC),
-                newEventDto.getEventDate().toInstant(ZoneOffset.UTC),
-                0L,
-                LocationMapper.location(newEventDto.getLocation()),
-                newEventDto.getPaid(),
-                newEventDto.getParticipantLimit(),
-                null,
-                newEventDto.getRequestModeration(),
-                EventState.PENDING);
+        return Event.builder()
+                .title(newEventDto.getTitle())
+                .annotation(newEventDto.getAnnotation())
+                .description(newEventDto.getDescription())
+                .category(category)
+                .createdOn(now().atZone(ZoneId.of("UTC")).toInstant())
+                .eventDateTime(newEventDto.getEventDate().atZone(ZoneId.of("UTC")).toInstant())
+                .initiatorId(0L)
+                .location(LocationMapper.location(newEventDto.getLocation()))
+                .paid(newEventDto.getPaid() != null ? newEventDto.getPaid() : false)
+                .participantLimit(newEventDto.getParticipantLimit() != null ? newEventDto.getParticipantLimit() : 0L)
+                .publishedOn(null)
+                .isModerated(newEventDto.getRequestModeration() != null ? newEventDto.getRequestModeration() : true)
+                .state(EventState.PENDING)
+                .build();
     }
 
     public static EventDto fromEventToEventDto(Event event, CategoryDto eventCategoryDto, UserShortDto owner,

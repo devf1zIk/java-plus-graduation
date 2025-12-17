@@ -25,6 +25,7 @@ CREATE TABLE events (
                         created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL,
                         event_date_time TIMESTAMP WITHOUT TIME ZONE NOT NULL,
                         initiator_id BIGINT NOT NULL,
+                        confirmed_requests INTEGER DEFAULT 0,
                         paid BOOLEAN,
                         participant_limit INTEGER,
                         published_on TIMESTAMP WITHOUT TIME ZONE,
