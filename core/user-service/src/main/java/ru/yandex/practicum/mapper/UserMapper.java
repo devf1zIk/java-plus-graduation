@@ -10,7 +10,7 @@ import ru.yandex.practicum.model.User;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class UserMapper {
     public static UserFullDto toUserDtoFromUser(User user) {
-        UserFullDto userFullDto = new UserFullDto(user.getEmail(), -1, user.getName());
+        UserFullDto userFullDto = new UserFullDto(user.getEmail(), null, user.getName());
         if (user.getId() != null) {
             userFullDto.setId(user.getId());
         }
@@ -32,6 +32,6 @@ public class UserMapper {
     }
 
     public static User toUserFromUserDto(NewUserRequestDto newUserRequestDto) {
-        return new User(0L,newUserRequestDto.getName(), newUserRequestDto.getEmail());
+        return new User(null,newUserRequestDto.getName(), newUserRequestDto.getEmail());
     }
 }

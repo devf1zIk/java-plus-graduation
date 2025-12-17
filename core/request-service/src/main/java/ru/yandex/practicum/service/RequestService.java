@@ -16,7 +16,6 @@ import ru.yandex.practicum.repository.RequestRepository;
 import ru.yandex.practicum.dto.request.RequestStatusUpdateResponse;
 import java.time.LocalDateTime;
 import java.util.*;
-import ru.yandex.practicum.enums.RequestStatus.*;
 
 @Service
 public class RequestService {
@@ -57,7 +56,7 @@ public class RequestService {
         if (pendingRequests.isEmpty()) {
             throw new ConflictException("Запрос не найден");
         }
-        long confirmedRequestsCount = requestRepository.findAllByEventIdAndStatus(eventId, RequestStatus.CONFIRMED).size();
+        long confirmedRequestsCount = requestRepository.countByEventIdAndStatus(eventId, RequestStatus.CONFIRMED);
         if (!eventDto.getRequestModeration() || eventDto.getParticipantLimit() == 0) {
             requests.forEach(req -> req.setStatus(RequestStatus.CONFIRMED));
             result.getConfirmedRequests().addAll(requests.stream()
@@ -73,7 +72,7 @@ public class RequestService {
 
         if ((confirmedRequestsCount + request.getRequestIds().size()) == eventDto.getParticipantLimit() &&
                 request.getStatus().equals(RequestStatus.CONFIRMED)) {
-            requests.forEach(req -> req.setStatus(RequestStatus.REJECTED));
+            requests.forEach(req -> req.setStatus(RequestStatus.CONFIRMED));
             confirmed.addAll(requests.stream().map(RequestMapper::fromRequestToRequestDto).toList());
             requestRepository.saveAll(requests);
             result.setConfirmedRequests(confirmed);
@@ -118,8 +117,7 @@ public class RequestService {
         if (eventDto.getPublishedOn() == null) {
             throw new ConflictException("Событие с id " + eventId + " еще не опубликовано");
         }
-        RequestStatus status = RequestStatus.PENDING;
-        long confirmedRequestsCount = requestRepository.findAllByEventIdAndStatus(eventId, status).size();
+        long confirmedRequestsCount = requestRepository.countByEventIdAndStatus(eventId, RequestStatus.CONFIRMED);
         if (confirmedRequestsCount == eventDto.getParticipantLimit() && eventDto.getParticipantLimit() > 0) {
             throw new ConflictException(
                     "Лимит участников для события " + eventId + " превышен");
@@ -132,13 +130,8 @@ public class RequestService {
         request.setEventId(eventId);
         request.setRequesterId(userId);
         request.setCreatedOn(LocalDateTime.now());
-        request.setStatus(status);
-        if (!eventDto.getRequestModeration()) {
-            request.setStatus(RequestStatus.CONFIRMED);
-        }
-        if (eventDto.getParticipantLimit() == 0 && requestRepository.countByEventIdAndStatus(eventId, RequestStatus.CONFIRMED) >= eventDto.getParticipantLimit()) {
-            request.setStatus(RequestStatus.CONFIRMED);
-        }
+        boolean autoConfirm = !eventDto.getRequestModeration() || eventDto.getParticipantLimit() == 0;
+        request.setStatus(autoConfirm ? RequestStatus.CONFIRMED : RequestStatus.PENDING);
         ParticipationRequest result = requestRepository.save(request);
 
         return RequestMapper.fromRequestToRequestDto(result);

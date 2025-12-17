@@ -10,7 +10,6 @@ import ru.yandex.practicum.client.request.RequestClient;
 import ru.yandex.practicum.client.user.UserClient;
 import ru.yandex.practicum.dto.compilation.NewCompilationDto;
 import ru.yandex.practicum.enums.RequestStatus;
-import ru.yandex.practicum.exception.model.BadRequestException;
 import ru.yandex.practicum.exception.model.NotFoundException;
 import ru.yandex.practicum.main.category.mapper.EventCategoryMapper;
 import ru.yandex.practicum.dto.compilation.CompilationDto;
@@ -48,7 +47,7 @@ public class CompilationService {
     }
 
     public List<CompilationDto> getAll(boolean pinned, int from, int size) {
-        Pageable pageable = PageRequest.of(from, size);
+        Pageable pageable = PageRequest.of(from / size, size);
         List<Compilation> compilations = compilationRepository
                 .getAllByPinned(pinned, pageable).stream().toList();
         List<CompilationDto> result = new ArrayList<>();

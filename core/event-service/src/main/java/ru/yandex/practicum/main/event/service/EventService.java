@@ -2,6 +2,8 @@ package ru.yandex.practicum.main.event.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import ru.yandex.practicum.dto.user.UserShortDto;
+import ru.yandex.practicum.exception.model.ServiceUnavailableException;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.client.StatsClient;
@@ -72,10 +74,11 @@ public class EventService {
 
         Event saved = eventRepository.save(event);
 
+        var initiator = userClient.getUser(userId);
         return EventMapper.fromEventToEventDto(
                 saved,
                 EventCategoryMapper.toCategoryDtoFromCategory(category),
-                userClient.getUser(userId),
+                initiator,
                 0L,
                 0
         );
@@ -86,9 +89,6 @@ public class EventService {
 
         if (!event.getState().equals(EventState.PENDING)) {
             throw new ConflictException("Изменять можно только событие в состоянии PENDING");
-        }
-        if (event.getPublishedOn() != null && dto.getStateAction() == AdminEventAction.REJECT_EVENT) {
-            throw new ConflictException("Опубликованное событие нельзя отклонить");
         }
 
         validateEventDate(dto.getEventDate(), true);
@@ -178,21 +178,19 @@ public class EventService {
                                            boolean onlyAvailable, String sort, int from, int size) {
 
         Sort dbSort = "EVENT_DATE".equalsIgnoreCase(sort) ? Sort.by("eventDateTime").descending() : Sort.unsorted();
-        Pageable pageable = PageRequest.of(from / size, size, dbSort);
-
+        Pageable pageable = "VIEWS".equalsIgnoreCase(sort) ? Pageable.unpaged() : PageRequest.of(from / size, size, dbSort);
         Page<Event> page = getPublicEventsPage(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, pageable);
         List<EventShortDto> dtos = getEventsShorts(page.getContent());
 
         if ("VIEWS".equalsIgnoreCase(sort)) {
             dtos = dtos.stream()
                     .sorted(Comparator.comparing(EventShortDto::getViews).reversed())
+                    .skip(from)
+                    .limit(size)
                     .toList();
         }
 
-        return dtos.stream()
-                .skip(from % size)
-                .limit(size)
-                .toList();
+        return dtos;
     }
 
     private Page<Event> getPublicEventsPage(String text, List<Long> categories, Boolean paid,
@@ -236,7 +234,10 @@ public class EventService {
 
     private void checkUserExists(Long userId) {
         try {
-            userClient.getUser(userId);
+            var user = userClient.getUser(userId);
+            if (user == null) {
+                throw new ServiceUnavailableException("User service is unavailable");
+            }
         } catch (FeignException.NotFound e) {
             throw new NotFoundException("Пользователь с id=" + userId + " не найден");
         }
@@ -344,13 +345,24 @@ public class EventService {
     }
 
     private EventDto getEventDtoFromEvent(Event event) {
-        Long confirmed = requestClient.countByStatus(event.getId(), RequestStatus.CONFIRMED);
+        Long confirmed;
+        try {
+            confirmed = requestClient.countByStatus(event.getId(), RequestStatus.CONFIRMED);
+        } catch (FeignException e) {
+            log.warn("Ошибка при запросе подтверждённых заявок для события {}: {}", event.getId(), e.getMessage());
+            confirmed = 0L;
+        }
         Integer views = getEventsViewsMap(List.of(event.getId())).getOrDefault(event.getId(), 0);
+
+        var initiator = userClient.getUser(event.getInitiatorId());
+        if (initiator == null) {
+            throw new ServiceUnavailableException("User service is unavailable");
+        }
 
         return EventMapper.fromEventToEventDto(
                 event,
                 EventCategoryMapper.toCategoryDtoFromCategory(event.getCategory()),
-                userClient.getUser(event.getInitiatorId()),
+                initiator,
                 confirmed,
                 views
         );
@@ -358,14 +370,21 @@ public class EventService {
 
     private List<EventDto> getEventsFulls(List<Event> events) {
         Map<Long, Integer> viewsMap = getEventsViewsMap(events.stream().map(Event::getId).toList());
+        Map<Long, Long> confirmedMap = requestClient.countByStatusBatch(
+                events.stream().map(Event::getId).toList(),
+                RequestStatus.CONFIRMED
+        );
+        Map<Long, UserShortDto> usersMap = userClient.getUsersBatch(
+                events.stream().map(Event::getInitiatorId).distinct().toList()
+        );
 
         return events.stream()
                 .map(e -> {
-                    Long confirmed = requestClient.countByStatus(e.getId(), RequestStatus.CONFIRMED);
+                    Long confirmed = confirmedMap.getOrDefault(e.getId(), 0L);
                     return EventMapper.fromEventToEventDto(
                             e,
                             EventCategoryMapper.toCategoryDtoFromCategory(e.getCategory()),
-                            userClient.getUser(e.getInitiatorId()),
+                            usersMap.get(e.getInitiatorId()),
                             confirmed,
                             viewsMap.getOrDefault(e.getId(), 0)
                     );

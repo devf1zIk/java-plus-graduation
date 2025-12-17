@@ -20,6 +20,9 @@
         <project.mapstruct.processor.version>1.6.3</project.mapstruct.processor.version>
         <project.lombok.version>1.18.38</project.lombok.version>
         <project.lombok.mapstruct.binding.version>0.2.0</project.lombok.mapstruct.binding.version>
+        <plexus-utils.version>3.4.2</plexus-utils.version>
+        <httpclient5.version>5.3.1</httpclient5.version>
+        <jackson-datatype-hibernate6.version>2.15.2</jackson-datatype-hibernate6.version>
     </properties>
     <dependencies>
         <dependency>

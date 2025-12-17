@@ -33,7 +33,7 @@ public class Event {
     private EventCategory category;
     private Instant createdOn;
     private Instant eventDateTime;
-    @Column(name = "initiator_id")
+    @Column(name = "initiator_id", nullable = false)
     private Long initiatorId;
 
     @Column(name = "confirmed_requests")

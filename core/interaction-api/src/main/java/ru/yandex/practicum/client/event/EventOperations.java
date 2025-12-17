@@ -8,5 +8,5 @@ import ru.yandex.practicum.dto.event.EventDto;
 public interface EventOperations {
 
     @GetMapping("/{eventId}")
-    EventDto getEvent(@PathVariable @NotNull Long eventId);
+    EventDto getEvent(@PathVariable("eventId") @NotNull Long eventId);
 }

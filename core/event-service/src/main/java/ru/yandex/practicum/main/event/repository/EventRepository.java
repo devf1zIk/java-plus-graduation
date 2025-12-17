@@ -49,7 +49,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     @Query("""
         SELECT e FROM Event e
         WHERE (e.participantLimit = 0 OR e.participantLimit > e.confirmedRequests)
-          AND e.state = 'PUBLISHED'
+          AND e.state = :state
           AND (:text IS NULL\s
                OR UPPER(e.annotation) LIKE UPPER(CONCAT('%', :text, '%'))
                OR UPPER(e.description) LIKE UPPER(CONCAT('%', :text, '%')))
@@ -68,7 +68,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     @Query("""
         SELECT e FROM Event e
         WHERE (e.participantLimit = 0 OR e.participantLimit > e.confirmedRequests)
-          AND e.state = 'PUBLISHED'
+          AND e.state = :state
           AND (:text IS NULL OR UPPER(e.annotation) LIKE UPPER(CONCAT('%', :text, '%'))
                OR UPPER(e.description) LIKE UPPER(CONCAT('%', :text, '%')))
           AND (:categories IS NULL OR e.category.id IN :categories)
@@ -86,7 +86,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     @Query("""
         SELECT e FROM Event e
-        WHERE e.state = 'PUBLISHED'
+        WHERE e.state = :state
           AND (:text IS NULL\s
                OR UPPER(e.annotation) LIKE UPPER(CONCAT('%', :text, '%'))
                OR UPPER(e.description) LIKE UPPER(CONCAT('%', :text, '%')))
@@ -104,7 +104,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     @Query("""
         SELECT e FROM Event e
-        WHERE e.state = 'PUBLISHED'
+        WHERE e.state = :state
           AND (:text IS NULL\s
                OR UPPER(e.annotation) LIKE UPPER(CONCAT('%', :text, '%'))
                OR UPPER(e.description) LIKE UPPER(CONCAT('%', :text, '%')))

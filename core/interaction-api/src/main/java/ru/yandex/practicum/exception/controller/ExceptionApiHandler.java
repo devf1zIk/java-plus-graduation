@@ -94,6 +94,10 @@ public class ExceptionApiHandler {
                     .body(new ApiError(message, "Resource not found in external service", NOT_FOUND.toString()));
         }
 
+        if (e.status() == SERVICE_UNAVAILABLE.value()) {
+            return ResponseEntity.status(SERVICE_UNAVAILABLE)
+                  .body(new ApiError("Микросервис временно недоступен", "Service unavailable", SERVICE_UNAVAILABLE.toString()));
+        }
         if (e.status() >= 500) {
             return ResponseEntity.status(INTERNAL_SERVER_ERROR)
                     .body(new ApiError("Внутренняя ошибка микросервиса", "Internal service error", INTERNAL_SERVER_ERROR.toString()));
@@ -101,13 +105,6 @@ public class ExceptionApiHandler {
 
         return ResponseEntity.status(SERVICE_UNAVAILABLE)
                     .body(new ApiError("Ошибка при вызове микросервиса", "Service unavailable", SERVICE_UNAVAILABLE.toString()));
-    }
-
-    @ExceptionHandler(feign.FeignException.ServiceUnavailable.class)
-    @ResponseStatus(SERVICE_UNAVAILABLE)
-    public ApiError handleFeignServiceUnavailable(feign.FeignException.ServiceUnavailable e) {
-        log.error("Микросервис недоступен: {}", e.getMessage());
-        return new ApiError("Микросервис временно недоступен", "Service unavailable", SERVICE_UNAVAILABLE.toString());
     }
 
     @ExceptionHandler(Throwable.class)
@@ -122,8 +119,11 @@ public class ExceptionApiHandler {
     public ApiError handleConstraintViolationException(ConstraintViolationException e) {
         String message = e.getConstraintViolations().stream()
                 .map(cv -> {
-                    String property = cv.getPropertyPath().toString();
-                    String paramName = property.substring(property.lastIndexOf('.') + 1);
+                    String paramName = cv.getPropertyPath().toString();
+                    int lastDot = paramName.lastIndexOf('.');
+                    if (lastDot >= 0) {
+                        paramName = paramName.substring(lastDot + 1);
+                    }
                     return paramName + ": " + cv.getMessage();
                 })
                 .collect(Collectors.joining("; "));
@@ -134,7 +134,8 @@ public class ExceptionApiHandler {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     @ResponseStatus(BAD_REQUEST)
     public ApiError handleTypeMismatch(MethodArgumentTypeMismatchException e) {
-        String message = String.format("Параметр '%s' должен быть числом", e.getName());
+        String requiredType = e.getRequiredType() != null ? e.getRequiredType().getSimpleName() : "корректным";
+        String message = String.format("Параметр '%s' имеет некорректный тип. Ожидается: %s", e.getName(), requiredType);
         log.warn("Type mismatch: {}", message);
         return new ApiError(message, "Некорректный тип параметра", BAD_REQUEST.toString());
     }

@@ -15,6 +15,6 @@ public class CompilationDto {
     Set<EventShortDto> events;
     Long id;
     Boolean pinned;
-    @Size(max = 50)
+    @Size(max = 50, message = "Название подборки должно быть до 50 символов")
     String title;
 }
