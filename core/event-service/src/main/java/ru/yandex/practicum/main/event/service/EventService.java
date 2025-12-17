@@ -201,12 +201,12 @@ public class EventService {
 
         if (onlyAvailable) {
             return end == null
-                    ? eventRepository.findAllAvailablePublishedEventsByCategoryAndStateAfterDate(text, start, categories, paid, pageable)
-                    : eventRepository.findAllAvailablePublishedEventsByCategoryAndStateBetweenDates(text, start, end, categories,paid, pageable);
+                    ? eventRepository.findAllAvailablePublishedEventsByCategoryAndStateAfterDate(text, start, categories, paid, EventState.PUBLISHED, pageable)
+                    : eventRepository.findAllAvailablePublishedEventsByCategoryAndStateBetweenDates(text, start, end, categories,paid, EventState.PUBLISHED, pageable);
         } else {
             return end == null
-                    ? eventRepository.findAllEventsWithStatusAfterDate(text, start, categories, paid, pageable)
-                    : eventRepository.findAllEventsWithStatusBetweenDates(text, start, end, categories, paid, pageable);
+                    ? eventRepository.findAllEventsWithStatusAfterDate(text, start, categories, paid, EventState.PUBLISHED, pageable)
+                    : eventRepository.findAllEventsWithStatusBetweenDates(text, start, end, categories, paid, EventState.PUBLISHED, pageable);
         }
     }
 
