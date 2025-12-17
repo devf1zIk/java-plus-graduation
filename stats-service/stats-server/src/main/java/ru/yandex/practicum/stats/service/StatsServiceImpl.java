@@ -35,7 +35,6 @@ public class StatsServiceImpl implements StatsService {
                 stats = hitRepository.findAllHits(startRange, endRange);
             } else {
                 stats = hitRepository.findAllUniqueHits(startRange, endRange);
-                stats.forEach(k -> k.setHits(1L));
             }
         } else {
             if (!unique) {
