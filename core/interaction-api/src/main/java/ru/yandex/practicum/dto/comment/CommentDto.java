@@ -1,8 +1,8 @@
 package ru.yandex.practicum.dto.comment;
 
+import jakarta.persistence.Column;
 import lombok.*;
 import ru.yandex.practicum.dto.event.EventShortDto;
-import ru.yandex.practicum.dto.user.UserShortDto;
 import java.time.LocalDateTime;
 
 @Getter
@@ -11,9 +11,11 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class CommentDto {
-    Long id;
-    EventShortDto event;
-    UserShortDto author;
-    String text;
-    LocalDateTime createdAt;
+    private Long id;
+    private EventShortDto event;
+    private Long authorId;
+    private String text;
+    @Builder.Default
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
 }

@@ -9,6 +9,6 @@ import java.util.Set;
 @AllArgsConstructor
 @RequiredArgsConstructor
 public class RequestStatusUpdateResponse {
-    Set<ParticipationRequestDto> confirmedRequests;
-    Set<ParticipationRequestDto> rejectedRequests;
+    private Set<ParticipationRequestDto> confirmedRequests;
+    private Set<ParticipationRequestDto> rejectedRequests;
 }

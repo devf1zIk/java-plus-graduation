@@ -15,11 +15,11 @@ import java.time.LocalDateTime;
 public class MergeCommentRequest {
 
     @NotNull
-    Long eventId;
+    private Long eventId;
 
     @NotBlank
-    String text;
+    private String text;
 
     @Builder.Default
-    LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt = LocalDateTime.now();
 }

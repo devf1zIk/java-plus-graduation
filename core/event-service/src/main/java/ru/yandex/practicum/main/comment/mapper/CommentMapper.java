@@ -8,17 +8,19 @@ import ru.yandex.practicum.main.event.model.Event;
 
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface CommentMapper {
+    @Mapping(target = "id", ignore = true)
     @Mapping(target = "authorId", source = "userId")
     @Mapping(target = "event", source = "event")
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "createdAt", source = "commentRequest.createdAt")
+    @Mapping(target = "createdAt", ignore = true)
     Comment requestToComment(MergeCommentRequest commentRequest, Event event, Long userId);
 
+    @Mapping(target = "authorId", source = "authorId")
     CommentDto commentToResponse(Comment comment);
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "authorId", ignore = true)
     @Mapping(target = "event", source = "event")
-    @Mapping(target = "createdAt", source = "commentRequest.createdAt")
+    @Mapping(target = "createdAt", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateComment(MergeCommentRequest commentRequest, Event event, @MappingTarget Comment comment);
 }

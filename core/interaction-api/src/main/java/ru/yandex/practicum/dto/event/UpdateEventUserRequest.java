@@ -16,19 +16,19 @@ import java.time.LocalDateTime;
 public class UpdateEventUserRequest {
 
     @Size(min = 20, max = 7000, message = "Описание должно быть длиной от 20 до 7000 символов")
-    String annotation;
-    Long category;
+    private String annotation;
+    private Long category;
     @Size(min = 20, max = 7000, message = "Описание должно быть длиной от 20 до 7000 символов")
-    String description;
+    private String description;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     @Future(message = "Дата события должна быть в будущем")
-    LocalDateTime eventDate;
-    LocationDto location;
-    Boolean paid;
+    private LocalDateTime eventDate;
+    private LocationDto location;
+    private Boolean paid;
     @PositiveOrZero(message = "Лимит участников должен быть положительным числом или нулём")
-    Long participantLimit;
-    Boolean requestModeration;
-    UserEventActions stateAction;
+    private Long participantLimit;
+    private Boolean requestModeration;
+    private UserEventActions stateAction;
     @Size(min = 3, max = 120, message = "Название должно быть длиной от 3 до 120 символов")
-    String title;
+    private String title;
 }
