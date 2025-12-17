@@ -94,6 +94,10 @@ public class ExceptionApiHandler {
                     .body(new ApiError(message, "Resource not found in external service", NOT_FOUND.toString()));
         }
 
+        if (e.status() >= 400 && e.status() < 500) {
+            return ResponseEntity.status(BAD_REQUEST)
+                    .body(new ApiError("Некорректный запрос к микросервису", "Bad request to external service", BAD_REQUEST.toString()));
+        }
         if (e.status() == SERVICE_UNAVAILABLE.value()) {
             return ResponseEntity.status(SERVICE_UNAVAILABLE)
                   .body(new ApiError("Микросервис временно недоступен", "Service unavailable", SERVICE_UNAVAILABLE.toString()));
