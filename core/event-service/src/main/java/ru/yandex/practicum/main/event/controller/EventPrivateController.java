@@ -33,11 +33,12 @@ public class EventPrivateController {
     }
 
     @GetMapping("/{userId}/events")
+    @ResponseStatus(HttpStatus.OK)
     public List<EventShortDto> getUserEvents(@PathVariable Long userId,
                                              @PositiveOrZero @RequestParam(value = "from", defaultValue = "0") int from,
                                              @Positive @RequestParam(value = "size", defaultValue = "10") int size,
                                              HttpServletRequest request) {
-        Pageable paging = PageRequest.of(from, size);
+        Pageable paging = PageRequest.of(from / size, size);
         statClient.create(new HitDto(request.getRemoteAddr(), "app", "/events", LocalDateTime.now()));
 
         return eventService.getByUserId(userId, paging);

@@ -1,6 +1,7 @@
 package ru.yandex.practicum.exception.controller;
 
 import feign.FeignException;
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -8,6 +9,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import ru.yandex.practicum.exception.model.*;
 import java.util.stream.Collectors;
 import static org.springframework.http.HttpStatus.*;
@@ -109,5 +111,34 @@ public class ExceptionApiHandler {
     public ApiError handleOtherExceptions(Throwable e) {
         log.error("Unexpected error: {}", e.getMessage(), e);
         return new ApiError(e.getMessage(), "Internal server error", INTERNAL_SERVER_ERROR.toString());
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    @ResponseStatus(BAD_REQUEST)
+    public ApiError handleConstraintViolationException(ConstraintViolationException e) {
+        String message = e.getConstraintViolations().stream()
+                .map(cv -> {
+                    String property = cv.getPropertyPath().toString();
+                    String paramName = property.substring(property.lastIndexOf('.') + 1);
+                    return paramName + ": " + cv.getMessage();
+                })
+                .collect(Collectors.joining("; "));
+        log.warn("Constraint violation: {}", message);
+        return new ApiError(message, "Ошибка валидации параметров", BAD_REQUEST.toString());
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    @ResponseStatus(BAD_REQUEST)
+    public ApiError handleTypeMismatch(MethodArgumentTypeMismatchException e) {
+        String message = String.format("Параметр '%s' должен быть числом", e.getName());
+        log.warn("Type mismatch: {}", message);
+        return new ApiError(message, "Некорректный тип параметра", BAD_REQUEST.toString());
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(BAD_REQUEST)
+    public ApiError handleIllegalArgument(IllegalArgumentException e) {
+        log.warn("Bad request due to invalid argument: {}", e.getMessage());
+        return new ApiError(e.getMessage(), "Некорректные параметры запроса", BAD_REQUEST.toString());
     }
 }

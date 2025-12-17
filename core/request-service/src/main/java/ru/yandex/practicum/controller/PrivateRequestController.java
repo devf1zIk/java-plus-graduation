@@ -30,10 +30,10 @@ public class PrivateRequestController {
 
     @PostMapping("/{userId}/requests")
     @ResponseStatus(HttpStatus.CREATED)
-    public ParticipationRequestDto createRequest(@PathVariable @Positive Long userId, @RequestParam(required = false) Long eventId) {
-        if (eventId == null || eventId <= 0) {
-            throw new IllegalArgumentException("eventId обязателен и должен быть положительным");
-        }
+    public ParticipationRequestDto createRequest(
+            @PathVariable @Positive Long userId,
+            @RequestParam @Positive(message = "eventId обязателен и должен быть положительным") Long eventId) {
+
         return requestService.addParticipationRequest(userId, eventId);
     }
 
