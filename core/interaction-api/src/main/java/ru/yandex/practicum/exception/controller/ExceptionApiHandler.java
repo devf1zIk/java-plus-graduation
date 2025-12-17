@@ -95,10 +95,11 @@ public class ExceptionApiHandler {
         }
 
         if (e.status() >= 400 && e.status() < 500) {
-            return ResponseEntity.status(BAD_REQUEST)
-                    .body(new ApiError("Некорректный запрос к микросервису", "Bad request to external service", BAD_REQUEST.toString()));
+            return ResponseEntity.status(e.status())
+                    .body(new ApiError("Некорректный запрос к микросервису", "Bad request to external service", String.valueOf(e.status())));
         }
         if (e.status() == SERVICE_UNAVAILABLE.value()) {
+            log.warn("Unexpected FeignException status: {}", e.status());
             return ResponseEntity.status(SERVICE_UNAVAILABLE)
                   .body(new ApiError("Микросервис временно недоступен", "Service unavailable", SERVICE_UNAVAILABLE.toString()));
         }

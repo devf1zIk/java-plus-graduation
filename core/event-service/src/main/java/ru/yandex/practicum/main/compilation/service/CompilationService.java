@@ -9,6 +9,7 @@ import ru.yandex.practicum.client.StatsClient;
 import ru.yandex.practicum.client.request.RequestClient;
 import ru.yandex.practicum.client.user.UserClient;
 import ru.yandex.practicum.dto.compilation.NewCompilationDto;
+import ru.yandex.practicum.dto.user.UserShortDto;
 import ru.yandex.practicum.enums.RequestStatus;
 import ru.yandex.practicum.exception.model.NotFoundException;
 import ru.yandex.practicum.main.category.mapper.EventCategoryMapper;
@@ -16,6 +17,7 @@ import ru.yandex.practicum.dto.compilation.CompilationDto;
 import ru.yandex.practicum.dto.compilation.CompilationRequestDto;
 import ru.yandex.practicum.main.compilation.mapper.CompilationMapper;
 import ru.yandex.practicum.main.compilation.model.Compilation;
+import ru.yandex.practicum.exception.model.ServiceUnavailableException;
 import ru.yandex.practicum.main.compilation.repository.CompilationRepository;
 import ru.yandex.practicum.dto.event.EventShortDto;
 import ru.yandex.practicum.main.event.mapper.EventMapper;
@@ -182,10 +184,21 @@ public class CompilationService {
         Map<Long, Integer> viewsMap = getEventsViewsMap(new ArrayList<>(eventIds));
 
         return events.stream()
-                .map(event -> EventMapper.fromEventToEventShortDto(event,
-                        EventCategoryMapper.toCategoryDtoFromCategory(event.getCategory()),
-                        userClient.getUser(event.getInitiatorId()),
-                        requestClient.countByStatus(event.getId(), RequestStatus.CONFIRMED),
-                        viewsMap.get(event.getId()))).collect(Collectors.toSet());
+                .map(event -> {
+                    try {
+                        UserShortDto user = userClient.getUser(event.getInitiatorId());
+                        if (user == null) {
+                            throw new NotFoundException("Инициатор события не найден");
+                        }
+                        Long confirmedRequests = requestClient.countByStatus(event.getId(), RequestStatus.CONFIRMED);
+                        return EventMapper.fromEventToEventShortDto(event,
+                                EventCategoryMapper.toCategoryDtoFromCategory(event.getCategory()),
+                                user,
+                                confirmedRequests,
+                                viewsMap.get(event.getId()));
+                    } catch (ServiceUnavailableException e) {
+                        throw new RuntimeException("Сервис недоступен", e);
+                    }
+                }).collect(Collectors.toSet());
     }
 }

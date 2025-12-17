@@ -62,6 +62,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
             Instant start,
             List<Long> categories,
             Boolean paid,
+            EventState state,
             Pageable pageable
     );
 
@@ -81,6 +82,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
             Instant end,
             List<Long> categories,
             Boolean paid,
+            EventState state,
             Pageable pageable
     );
 
@@ -99,6 +101,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
             Instant start,
             List<Long> categories,
             Boolean paid,
+            EventState state,
             Pageable pageable
     );
 
@@ -118,6 +121,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
             Instant end,
             List<Long> categories,
             Boolean paid,
+            EventState state,
             Pageable pageable
     );
 }

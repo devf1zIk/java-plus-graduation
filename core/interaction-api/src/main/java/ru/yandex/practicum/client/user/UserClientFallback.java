@@ -15,7 +15,7 @@ public class UserClientFallback implements UserOperations{
     @Override
     public UserShortDto getUser(Long userId) {
         log.error("User service unavailable → getUser: {}", userId);
-        return null;
+        throw new ServiceUnavailableException("User service is unavailable");
     }
 
     @Override
