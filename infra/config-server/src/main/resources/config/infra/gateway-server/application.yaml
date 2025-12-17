@@ -1,9 +1,13 @@
 server:
   port: 8080
+
 spring:
   cloud:
     gateway:
-      discovery.locator.enabled: true
+      discovery:
+        locator:
+          enabled: true
+
       routes:
         - id: user_service_route
           uri: lb://USER-SERVICE
@@ -14,21 +18,22 @@ spring:
           predicates:
             - Path=/admin/events/**,
               /events/**,
-              /users/**/events/**,
+              /users/*/events/**,
               /admin/categories/**,
               /categories/**,
               /admin/compilations/**,
               /compilations/**,
-              /users/**/comments/**,
-              /events/**/comments/**,
+              /users/*/comments/**,
+              /events/*/comments/**,
               /comments/**
 
         - id: request_service_route
           uri: lb://REQUEST-SERVICE
           predicates:
             - Path=/internal/requests/**,
-              /users/**/requests/**,
-              /users/**/events/**/requests/**
+              /users/*/requests/**,
+              /users/*/events/*/requests/**
+
 management:
   endpoint:
     gateway:
