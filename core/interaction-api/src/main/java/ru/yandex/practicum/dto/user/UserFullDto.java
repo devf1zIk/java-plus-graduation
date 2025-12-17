@@ -4,22 +4,21 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 @Data
 @AllArgsConstructor
 @RequiredArgsConstructor
 @Builder
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserFullDto {
     @NotEmpty
     @Email
     @Size(min = 6, max = 254)
-    private String email;
-    private long id;
+    String email;
+    long id;
     @NotBlank
     @Size(min = 2, max = 250)
-    private String name;
+    String name;
 }

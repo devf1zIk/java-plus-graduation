@@ -2,24 +2,23 @@ package ru.yandex.practicum.dto.comment;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 import java.time.LocalDateTime;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class MergeCommentRequest {
 
     @NotNull
-    private Long eventId;
+    Long eventId;
 
     @NotBlank
-    private String text;
+    String text;
 
     @Builder.Default
-    private LocalDateTime createdAt = LocalDateTime.now();
+    LocalDateTime createdAt = LocalDateTime.now();
 }

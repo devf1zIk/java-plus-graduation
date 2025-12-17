@@ -2,40 +2,39 @@ package ru.yandex.practicum.dto.event;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 import java.time.LocalDateTime;
 
 @Builder
 @Data
 @AllArgsConstructor
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class NewEventDto {
 
     @NotBlank(message = "Поле annotation не может быть пустым")
     @Size(min = 20, max = 2000, message = "Поле annotation должно быть от 20 до 2000 символов")
-    private String annotation;
+    String annotation;
     @NotNull(message = "Поле category не может быть пустым")
-    private Long category;
+    Long category;
     @NotBlank(message = "Поле description не может быть пустым")
     @Size(min = 20, max = 7000, message = "Поле description должно быть от 20 до 7000 символов")
-    private String description;
+    String description;
     @NotNull(message = "Поле eventDate не может быть пустым")
     @Future(message = "Поле eventDate должно быть в будущем")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime eventDate;
+    LocalDateTime eventDate;
     @NotNull(message = "Поле location не может быть пустым")
-    private LocationDto location;
+    LocationDto location;
     @Builder.Default
-    private Boolean paid = false;
+    Boolean paid = false;
     @Builder.Default
     @PositiveOrZero(message = "Лимит участников должен быть положительным числом или нулём")
-    private Long participantLimit = 0L;
+    Long participantLimit = 0L;
     @Builder.Default
-    private Boolean requestModeration=true;
+    Boolean requestModeration=true;
     @NotBlank(message = "Поле title не может быть пустым")
     @Size(min = 3, max = 120, message = "Поле title должно быть от 3 до 120 символов")
-    private String title;
+    String title;
 }

@@ -3,10 +3,8 @@ package ru.yandex.practicum.dto.event;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 import ru.yandex.practicum.dto.category.CategoryDto;
 import ru.yandex.practicum.dto.user.UserShortDto;
 import ru.yandex.practicum.enums.EventState;
@@ -16,46 +14,47 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @RequiredArgsConstructor
 @Builder
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class EventDto {
 
-    private long id;
+    long id;
 
     @NotBlank
     @Size(min = 20, max = 2000)
-    private String annotation;
+    String annotation;
 
-    private CategoryDto category;
+    CategoryDto category;
 
-    private Long confirmedRequests;
+    Long confirmedRequests;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime createdOn;
+    LocalDateTime createdOn;
 
     @NotBlank
     @Size(min = 20, max = 7000)
-    private String description;
+    String description;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime eventDate;
+    LocalDateTime eventDate;
 
-    private UserShortDto initiator;
+    UserShortDto initiator;
 
-    private LocationDto location;
+    LocationDto location;
 
-    private Boolean paid;
+    Boolean paid;
 
-    private Long participantLimit;
+    Long participantLimit;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime publishedOn;
+    LocalDateTime publishedOn;
 
-    private Boolean requestModeration;
+    Boolean requestModeration;
 
-    private EventState state;
+    EventState state;
 
     @NotBlank
     @Size(min = 3, max = 120)
-    private String title;
+    String title;
 
-    private Integer views;
+    Integer views;
 }
