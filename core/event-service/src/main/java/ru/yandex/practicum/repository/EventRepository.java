@@ -20,14 +20,14 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     List<Event> findAllByCategory(EventCategory category);
 
     @Query("""
-    select e from Event e
-    where (:users is null or e.ownerId in :users)
-    and (:states is null or e.state in :states)
-    and (:categories is null or e.category.id in :categories)
-    and (:start is null or e.eventDateTime >= :start)
-    and (:end is null or e.eventDateTime <= :end)
-    order by e.id
-    """)
+select e from Event e
+where (:users is null or e.ownerId in :users)
+and (:states is null or e.state in :states)
+and (:categories is null or e.category.id in :categories)
+and (:start is null or e.eventDateTime >= :start)
+and (:end is null or e.eventDateTime <= :end)
+order by e.id
+""")
     Page<Event> findForAdmin(
             @Param("users") List<Long> users,
             @Param("states") List<EventState> states,

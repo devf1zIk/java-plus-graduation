@@ -74,12 +74,11 @@ public class EventService {
         Event event = getEventIfExist(eventId);
 
         if (event.getEventDateTime() != null &&
-                event.getEventDateTime().isBefore(Instant.from(LocalDateTime.now().plusHours(2)))) {
+                event.getEventDateTime().isBefore(LocalDateTime.now().plusHours(2).atZone(ZoneOffset.UTC).toInstant())) {
             throw new BadRequestException(
                     "eventDate не может быть раньше чем через 2 часа от текущего времени"
             );
         }
-
         if (dto.getStateAction() == AdminEventAction.PUBLISH_EVENT && event.getState() != EventState.PENDING) {
             throw new ConflictException("Публиковать можно только событие в состоянии PENDING");
         }
@@ -92,7 +91,9 @@ public class EventService {
 
         if (dto.getAnnotation() != null) event.setAnnotation(dto.getAnnotation());
         if (dto.getDescription() != null) event.setDescription(dto.getDescription());
-        if (dto.getEventDate() != null) event.setEventDateTime(dto.getEventDate().toInstant(ZoneOffset.UTC));
+        if (dto.getEventDate() != null) {
+            event.setEventDateTime(dto.getEventDate().atZone(ZoneOffset.UTC).toInstant());
+        }
         if (dto.getLocation() != null) event.setLocation(saveLocation(dto.getLocation()));
         if (dto.getPaid() != null) event.setPaid(dto.getPaid());
         if (dto.getParticipantLimit() != null) event.setParticipantLimit(dto.getParticipantLimit());
@@ -269,18 +270,18 @@ public class EventService {
                                  LocalDateTime rangeStart, LocalDateTime rangeEnd,
                                  int from, int size) {
 
-        List<EventState> safeStates = states == null
+        List<EventState> safeStates = states == null || states.isEmpty()
                 ? null
                 : states.stream().map(EventState::valueOf).toList();
 
         Pageable pageable = PageRequest.of(from / size, size);
 
         Page<Event> page = eventRepository.findForAdmin(
-                users,
+                users == null || users.isEmpty() ? null : users,
                 safeStates,
-                categories,
-                rangeStart == null ? null : rangeStart.toInstant(ZoneOffset.UTC),
-                rangeEnd   == null ? null : rangeEnd.toInstant(ZoneOffset.UTC),
+                categories == null || categories.isEmpty() ? null : categories,
+                rangeStart == null ? null : rangeStart.atZone(ZoneOffset.UTC).toInstant(),
+                rangeEnd   == null ? null : rangeEnd.atZone(ZoneOffset.UTC).toInstant(),
                 pageable
         );
 

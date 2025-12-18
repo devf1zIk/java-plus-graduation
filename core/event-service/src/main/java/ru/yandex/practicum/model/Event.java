@@ -43,7 +43,7 @@ public class Event {
     Boolean paid = false;
 
     @Column(name = "participant_limit", nullable = false)
-    Long participantLimit;
+    Integer participantLimit;
 
     @Column(name = "published_on")
     private Instant publishedOn;

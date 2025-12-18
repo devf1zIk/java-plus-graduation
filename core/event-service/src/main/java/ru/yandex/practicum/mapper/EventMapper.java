@@ -40,7 +40,7 @@ public interface EventMapper {
     )
     @Mapping(
             target = "participantLimit",
-            expression = "java(dto.getParticipantLimit() != null ? dto.getParticipantLimit() : 0L)"
+            expression = "java(dto.getParticipantLimit() != null ? dto.getParticipantLimit() : 0)"
     )
     @Mapping(
             target = "isModerated",

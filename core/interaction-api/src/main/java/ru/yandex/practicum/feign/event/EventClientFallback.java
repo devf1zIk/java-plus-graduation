@@ -13,7 +13,7 @@ public class EventClientFallback implements EventClient {
                 .ownerId(-1L)
                 .publishedOn(null)
                 .isModerated(true)
-                .participantLimit(0L)
+                .participantLimit(0)
                 .build();
     }
 }
