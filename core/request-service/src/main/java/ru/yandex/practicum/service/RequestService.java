@@ -13,6 +13,8 @@ import ru.yandex.practicum.exception.model.ConflictException;
 import ru.yandex.practicum.exception.model.ForbiddenException;
 import ru.yandex.practicum.exception.model.NotFoundException;
 import ru.yandex.practicum.feign.event.EventClient;
+import ru.yandex.practicum.feign.request.RequestClient;
+import ru.yandex.practicum.feign.request.RequestClientSingle;
 import ru.yandex.practicum.feign.user.UserClient;
 import ru.yandex.practicum.mapper.RequestMapper;
 import ru.yandex.practicum.model.ParticipationRequest;
@@ -30,6 +32,8 @@ public class RequestService {
     private final RequestRepository requestRepository;
     private final UserClient userClient;
     private final EventClient eventClient;
+    private final RequestClient requestClient;
+    private final RequestClientSingle requestClientSingle;
 
     public List<RequestDto> getEventRequests(Long userId, Long eventId) {
         UserShortDto user;
@@ -53,7 +57,7 @@ public class RequestService {
         }
         List<ParticipationRequest> requests = requestRepository.findByEventId(eventId);
         return requests.stream()
-                .map(RequestMapper::fromRequestTpRequestDto)
+                .map(RequestMapper::fromRequestToRequestDto)
                 .toList();
     }
 
@@ -85,7 +89,7 @@ public class RequestService {
 
         if (!event.getIsModerated() || event.getParticipantLimit() == 0) {
             requests.forEach(r -> r.setStatus(RequestStatus.CONFIRMED));
-            response.getConfirmedRequests().addAll(requests.stream().map(RequestMapper::fromRequestTpRequestDto).toList());
+            response.getConfirmedRequests().addAll(requests.stream().map(RequestMapper::fromRequestToRequestDto).toList());
         } else if (requestDto.getStatus() == CONFIRMED) {
             if (confirmedCount >= event.getParticipantLimit()) {
                 throw new ConflictException("Лимит участников достигнут");
@@ -95,11 +99,11 @@ public class RequestService {
                 if (request.getStatus() == RequestStatus.PENDING) {
                     if (confirmedCount < event.getParticipantLimit()) {
                         request.setStatus(RequestStatus.CONFIRMED);
-                        response.getConfirmedRequests().add(RequestMapper.fromRequestTpRequestDto(request));
+                        response.getConfirmedRequests().add(RequestMapper.fromRequestToRequestDto(request));
                         confirmedCount++;
                     } else {
                         request.setStatus(RequestStatus.REJECTED);
-                        response.getRejectedRequests().add(RequestMapper.fromRequestTpRequestDto(request));
+                        response.getRejectedRequests().add(RequestMapper.fromRequestToRequestDto(request));
                     }
                 }
             }
@@ -110,7 +114,7 @@ public class RequestService {
                 }
                 if (request.getStatus() == RequestStatus.PENDING) {
                     request.setStatus(RequestStatus.REJECTED);
-                    response.getRejectedRequests().add(RequestMapper.fromRequestTpRequestDto(request));
+                    response.getRejectedRequests().add(RequestMapper.fromRequestToRequestDto(request));
                 }
             }
         }
@@ -126,7 +130,7 @@ public class RequestService {
             throw new NotFoundException("Пользователь с id " + userId + " не найден");
         }
         return requestRepository.findAllByRequesterId(userId).stream()
-                .map(RequestMapper::fromRequestTpRequestDto)
+                .map(RequestMapper::fromRequestToRequestDto)
                 .toList();
     }
 
@@ -165,7 +169,7 @@ public class RequestService {
                 .build();
 
         ParticipationRequest saved = requestRepository.save(request);
-        return RequestMapper.fromRequestTpRequestDto(saved);
+        return RequestMapper.fromRequestToRequestDto(saved);
     }
 
     public RequestDto cancelRequestByUser(Long userId, Long requestId) {
@@ -182,23 +186,23 @@ public class RequestService {
         }
 
         request.setStatus(RequestStatus.CANCELED);
-        return RequestMapper.fromRequestTpRequestDto(requestRepository.save(request));
+        return RequestMapper.fromRequestToRequestDto(requestRepository.save(request));
     }
 
     public Map<Long, Long> getConfirmedRequestsCount(List<Long> eventIds) {
         if (eventIds == null || eventIds.isEmpty()) {
             return Collections.emptyMap();
         }
-        List<Object[]> raw = requestRepository.countConfirmedByEventIdsRaw(eventIds);
-        Map<Long, Long> result = new HashMap<>();
-        for (Object[] row : raw) {
-            result.put((Long) row[0], (Long) row[1]);
-        }
-        eventIds.forEach(id -> result.putIfAbsent(id, 0L));
-        return result;
+        Map<Long, Long> map = requestClient.getConfirmedCounts(eventIds);
+        return map != null ? map : Collections.emptyMap();
     }
 
     public Long getCountByStatus(Long eventId, RequestStatus status) {
-        return requestRepository.countByEventIdAndStatus(eventId, status);
+        try {
+            return requestClientSingle.getCountByStatus(eventId, status);
+        } catch (Exception e) {
+            log.error("Ошибка при получении количества заявок для события {}: {}", eventId, e.getMessage());
+            return 0L;
+        }
     }
 }

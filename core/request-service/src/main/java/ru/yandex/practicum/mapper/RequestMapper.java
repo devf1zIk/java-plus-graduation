@@ -7,7 +7,7 @@ import ru.yandex.practicum.model.ParticipationRequest;
 @NoArgsConstructor
 public class RequestMapper {
 
-    public static RequestDto fromRequestTpRequestDto(ParticipationRequest participationrequest) {
+    public static RequestDto fromRequestToRequestDto(ParticipationRequest participationrequest) {
         if (participationrequest == null) {
             return null;
         }
