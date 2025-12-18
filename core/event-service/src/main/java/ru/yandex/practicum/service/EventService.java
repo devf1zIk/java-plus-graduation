@@ -1,5 +1,6 @@
 package ru.yandex.practicum.service;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -7,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.client.StatsClient;
+import ru.yandex.practicum.dto.HitDto;
 import ru.yandex.practicum.dto.event.*;
 import ru.yandex.practicum.dto.user.UserShortDto;
 import ru.yandex.practicum.enums.AdminEventAction;
@@ -39,6 +41,7 @@ public class EventService {
     private final EventRepository eventRepository;
     private final LocationRepository locationRepository;
     private final UserClient userClient;
+    private final StatsClient statsClient;
     private final RequestClient requestClient;
     private final EventMapper eventMapper;
 
@@ -126,11 +129,35 @@ public class EventService {
 
         Pageable pageable = getPageable(sort, from, size);
 
-        Page<Event> page = end == null
-                ? eventRepository.findPublishedAfterDate(text, categories, paid, start, pageable)
-                : eventRepository.findPublishedInRange(text, categories, paid, start, end, pageable);
+        Page<Event> page;
+        if (end == null) {
+            page = eventRepository.findAllPublishedAfter(start, pageable);
+        } else {
+            page = eventRepository.findAllPublishedInRange(start, end, pageable);
+        }
 
         List<Event> events = page.getContent();
+
+        if (text != null && !text.isBlank()) {
+            String search = text.toUpperCase();
+            events = events.stream()
+                    .filter(e -> e.getAnnotation() != null && e.getAnnotation().toUpperCase().contains(search) ||
+                            e.getDescription() != null && e.getDescription().toUpperCase().contains(search))
+                    .toList();
+        }
+
+        if (categories != null && !categories.isEmpty()) {
+            events = events.stream()
+                    .filter(e -> e.getCategory() != null && categories.contains(e.getCategory().getId()))
+                    .toList();
+        }
+
+        if (paid != null) {
+            events = events.stream()
+                    .filter(e -> e.getPaid() == paid)
+                    .toList();
+        }
+
         if (events.isEmpty()) {
             return List.of();
         }
@@ -138,7 +165,8 @@ public class EventService {
         if (onlyAvailable) {
             Map<Long, Long> confirmedMap = getConfirmedMap(events.stream().map(Event::getId).toList());
             events = events.stream()
-                    .filter(e -> e.getParticipantLimit() == 0 || confirmedMap.getOrDefault(e.getId(), 0L) < e.getParticipantLimit())
+                    .filter(e -> e.getParticipantLimit() == 0 ||
+                            confirmedMap.getOrDefault(e.getId(), 0L) < e.getParticipantLimit())
                     .toList();
         }
 
@@ -241,23 +269,18 @@ public class EventService {
                                  LocalDateTime rangeStart, LocalDateTime rangeEnd,
                                  int from, int size) {
 
-        List<Long> safeUsers = users == null ? List.of() : users;
-        List<Long> safeCategories = categories == null ? List.of() : categories;
         List<EventState> safeStates = states == null
-                ? List.of()
+                ? null
                 : states.stream().map(EventState::valueOf).toList();
-
-        Instant start = rangeStart == null ? Instant.EPOCH : rangeStart.toInstant(ZoneOffset.UTC);
-        Instant end = rangeEnd == null ? Instant.MAX : rangeEnd.toInstant(ZoneOffset.UTC);
 
         Pageable pageable = PageRequest.of(from / size, size);
 
         Page<Event> page = eventRepository.findForAdmin(
-                safeUsers,
+                users,
                 safeStates,
-                safeCategories,
-                start,
-                end,
+                categories,
+                rangeStart == null ? null : rangeStart.toInstant(ZoneOffset.UTC),
+                rangeEnd   == null ? null : rangeEnd.toInstant(ZoneOffset.UTC),
                 pageable
         );
 
@@ -265,15 +288,22 @@ public class EventService {
     }
 
 
-    public EventDto getById(Long eventId) {
+    public EventDto getById(Long eventId, HttpServletRequest request) {
         Event event = getEventIfExist(eventId);
         if (event.getState() != EventState.PUBLISHED) {
             throw new NotFoundException("Событие не опубликовано");
         }
 
+        statsClient.create(new HitDto(
+                request.getRemoteAddr(),
+                "app",
+                request.getRequestURI(),
+                LocalDateTime.now()
+        ));
+
         UserShortDto initiator = getInitiator(event.getOwnerId());
         Long confirmed = getConfirmedCount(eventId);
-        Integer views = getViews(eventId) + 1; // +1 за текущий просмотр
+        Integer views = getViews(eventId);
 
         return eventMapper.toEventDto(
                 event,

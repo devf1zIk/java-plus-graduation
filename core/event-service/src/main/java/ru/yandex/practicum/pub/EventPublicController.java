@@ -36,7 +36,7 @@ public class EventPublicController {
         statClient.create(new HitDto(request.getRemoteAddr(), "app", request.getRequestURI(),
                 LocalDateTime.now()));
 
-        return eventService.getById(id);
+        return eventService.getById(id,request);
     }
 
     @GetMapping
