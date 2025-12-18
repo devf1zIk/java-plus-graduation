@@ -1,6 +1,5 @@
 package ru.yandex.practicum.exception.controller;
 
-import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -95,13 +94,6 @@ public class ExceptionApiHandler {
         log.warn("HttpMessageNotReadableException: {}", e.getMessage());
         String message = "Malformed JSON request. Check the request body.";
         return new ErrorResponse(message, "Incorrectly made request.", BAD_REQUEST.toString());
-    }
-
-    @ExceptionHandler(FeignException.class)
-    @ResponseStatus(INTERNAL_SERVER_ERROR)
-    public ErrorResponse handleFeignException(FeignException e) {
-        log.error("Feign client error: status {}, message {}", e.status(), e.getMessage());
-        return new ErrorResponse("Error communicating with another service.", "Service communication error", INTERNAL_SERVER_ERROR.toString());
     }
 
     @ExceptionHandler(Throwable.class)
