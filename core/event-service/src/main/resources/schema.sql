@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS events (
     category_id        BIGINT NOT NULL REFERENCES event_categories(id) ON DELETE RESTRICT,
     owner_id           BIGINT NOT NULL,
     location_id        BIGINT REFERENCES event_locations(id) ON DELETE SET NULL,
+    initiator_id BIGINT NOT NULL,
     created_on         TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     event_date_time    TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     published_on       TIMESTAMP WITHOUT TIME ZONE,

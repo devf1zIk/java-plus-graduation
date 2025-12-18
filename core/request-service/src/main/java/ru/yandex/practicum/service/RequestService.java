@@ -45,6 +45,10 @@ public class RequestService {
         userClient.getById(userId);
         EventShortForRequestDto event = eventClient.getById(eventId);
 
+        if (!Objects.equals(event.getOwnerId(), userId)) {
+            throw new ForbiddenException("User с id " + userId + " не владелец события " + eventId);
+        }
+
         List<ParticipationRequest> requests = requestRepository.findAllByIdIn(requestDto.getRequestIds());
         if (requests.isEmpty() || requests.stream().noneMatch(r -> r.getStatus() == RequestStatus.PENDING)) {
             throw new ConflictException("Нет pending-запросов для обновления");
@@ -57,14 +61,33 @@ public class RequestService {
         if (!event.getIsModerated() || event.getParticipantLimit() == 0) {
             requests.forEach(r -> r.setStatus(RequestStatus.CONFIRMED));
             response.getConfirmedRequests().addAll(requests.stream().map(RequestMapper::fromRequestTpRequestDto).toList());
-        } else if (confirmedCount + requests.size() > event.getParticipantLimit()) {
-            throw new ConflictException("Лимит участников превышен");
         } else if (requestDto.getStatus() == CONFIRMED) {
-            requests.forEach(r -> r.setStatus(RequestStatus.CONFIRMED));
-            response.getConfirmedRequests().addAll(requests.stream().map(RequestMapper::fromRequestTpRequestDto).toList());
+            if (confirmedCount >= event.getParticipantLimit()) {
+                throw new ConflictException("Лимит участников достигнут");
+            }
+
+            for (ParticipationRequest request : requests) {
+                if (request.getStatus() == RequestStatus.PENDING) {
+                    if (confirmedCount < event.getParticipantLimit()) {
+                        request.setStatus(RequestStatus.CONFIRMED);
+                        response.getConfirmedRequests().add(RequestMapper.fromRequestTpRequestDto(request));
+                        confirmedCount++;
+                    } else {
+                        request.setStatus(RequestStatus.REJECTED);
+                        response.getRejectedRequests().add(RequestMapper.fromRequestTpRequestDto(request));
+                    }
+                }
+            }
         } else if (requestDto.getStatus() == REJECTED) {
-            requests.forEach(r -> r.setStatus(RequestStatus.REJECTED));
-            response.getRejectedRequests().addAll(requests.stream().map(RequestMapper::fromRequestTpRequestDto).toList());
+            for (ParticipationRequest request : requests) {
+                if (request.getStatus() == RequestStatus.CONFIRMED) {
+                    throw new ConflictException("Нельзя отклонить уже подтвержденную заявку");
+                }
+                if (request.getStatus() == RequestStatus.PENDING) {
+                    request.setStatus(RequestStatus.REJECTED);
+                    response.getRejectedRequests().add(RequestMapper.fromRequestTpRequestDto(request));
+                }
+            }
         }
 
         requestRepository.saveAll(requests);

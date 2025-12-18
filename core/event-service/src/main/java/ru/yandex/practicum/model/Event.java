@@ -42,6 +42,9 @@ public class Event {
     @Builder.Default
     Boolean paid = false;
 
+    @Column(name = "initiator_id", nullable = false)
+    Long initiatorId;
+
     @Column(name = "participant_limit", nullable = false)
     Integer participantLimit;
 

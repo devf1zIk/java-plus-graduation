@@ -1,7 +1,8 @@
 package ru.yandex.practicum.exception.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.validation.FieldError;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -10,83 +11,95 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import ru.yandex.practicum.exception.model.*;
 import java.util.List;
+import java.util.stream.Collectors;
 import static org.springframework.http.HttpStatus.*;
 
 @RestControllerAdvice
 @Slf4j
 public class ExceptionApiHandler {
 
+
+    @ExceptionHandler(BadRequestException.class)
+    @ResponseStatus(BAD_REQUEST)
+    public ErrorResponse handleBadRequestException(final BadRequestException e) {
+        log.warn("BadRequestException: {}", e.getMessage());
+        return new ErrorResponse(e.getParameter(), "Bad request", BAD_REQUEST.toString());
+    }
+
     @ExceptionHandler(ConflictException.class)
     @ResponseStatus(CONFLICT)
-    public ErrorResponse entityIsAlreadyExist(ConflictException exception) {
-        log.warn("Entity is already exist Message: {}, StackTrace: {}", exception.getMessage(), exception.getStackTrace());
-        return new ErrorResponse(exception.getMessage(), "Entity is already exist!", CONFLICT.toString());
+    public ErrorResponse handleConflictException(ConflictException exception) {
+        log.warn("ConflictException: {}", exception.getMessage());
+        return new ErrorResponse(exception.getMessage(), "Integrity constraint has been violated.", CONFLICT.toString());
     }
 
     @ExceptionHandler(PublicationException.class)
     @ResponseStatus(CONFLICT)
-    public ErrorResponse publicationIsNotExist(PublicationException exception) {
-        log.warn("Publication failed Message: {}, StackTrace: {}",exception.getMessage(), exception.getStackTrace());
+    public ErrorResponse handlePublicationException(PublicationException exception) {
+        log.warn("PublicationException: {}", exception.getMessage());
         return new ErrorResponse(exception.getMessage(), "Publication failed!", CONFLICT.toString());
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    @ResponseStatus(CONFLICT)
+    public ErrorResponse handleDataIntegrityViolationException(DataIntegrityViolationException e) {
+        String message = "Integrity constraint has been violated.";
+        if (e.getMostSpecificCause() != null) {
+            message = e.getMostSpecificCause().getMessage();
+        }
+        log.warn("DataIntegrityViolationException: {}", message);
+        return new ErrorResponse(message, "Integrity constraint has been violated.", CONFLICT.toString());
     }
 
     @ExceptionHandler(NotFoundException.class)
     @ResponseStatus(NOT_FOUND)
-    public ErrorResponse entityIsNotExist(NotFoundException exception) {
-        log.warn("Entity is not found Message: {}, StackTrace: {}", exception.getMessage(), exception.getStackTrace());
-        return new ErrorResponse(exception.getMessage(), "Entity is not found!", NOT_FOUND.toString());
-    }
-
-    @ExceptionHandler({MethodArgumentNotValidException.class})
-    @ResponseStatus(BAD_REQUEST)
-    public ErrorResponse commonValidation(MethodArgumentNotValidException e) {
-        List<FieldError> items = e.getBindingResult().getFieldErrors();
-        String message = items.stream()
-                .map(FieldError::getField)
-                .findFirst()
-                .orElse("Unknown error");
-        String title = items.stream()
-                .map(FieldError::getDefaultMessage)
-                .findFirst().orElse("Unknown error");
-        message = message + " - " + title;
-        log.warn(message);
-
-        return new ErrorResponse(message, "Validation error", BAD_REQUEST.toString());
-    }
-
-    @ExceptionHandler({MissingServletRequestParameterException.class})
-    @ResponseStatus(BAD_REQUEST)
-    public ErrorResponse handleMissingServletRequestParameterException(final Throwable e) {
-        log.warn("MissingServletRequestParameterException. Message: {}, StackTrace: {}", e.getMessage(),
-                e.getStackTrace());
-        return new ErrorResponse(e.getMessage(), "Validation error", BAD_REQUEST.toString());
-    }
-
-    @ExceptionHandler(HandlerMethodValidationException.class)
-    @ResponseStatus(BAD_REQUEST)
-    public ErrorResponse handlerMethodValidationException(final Throwable e) {
-        log.warn("HandlerMethodValidationException. Message: {}, StackTrace: {}", e.getMessage(), e.getStackTrace());
-        return new ErrorResponse(e.getMessage(), "Validation error", BAD_REQUEST.toString());
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(INTERNAL_SERVER_ERROR)
-    public ErrorResponse handleOtherExceptions(final Throwable e) {
-        log.warn("Exception. Message: {}, StackTrace: {}", e.getMessage(), e.getStackTrace());
-        return new ErrorResponse(e.getMessage(), "Unknown error", INTERNAL_SERVER_ERROR.toString());
+    public ErrorResponse handleNotFoundException(NotFoundException exception) {
+        log.warn("NotFoundException: {}", exception.getMessage());
+        return new ErrorResponse(exception.getMessage(), "The required object was not found.", NOT_FOUND.toString());
     }
 
     @ExceptionHandler(ForbiddenException.class)
     @ResponseStatus(FORBIDDEN)
     public ErrorResponse handleForbiddenException(ForbiddenException exception) {
-        log.warn("Access forbidden Message: {}, StackTrace: {}", exception.getMessage(), exception.getStackTrace());
+        log.warn("ForbiddenException: {}", exception.getMessage());
         return new ErrorResponse(exception.getMessage(), "Access forbidden", FORBIDDEN.toString());
     }
 
-    @ExceptionHandler(BadRequestException.class)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(BAD_REQUEST)
-    public ErrorResponse handleIncorrectParameterException(final BadRequestException e) {
-        log.warn("BadRequestException. Message: {}, StackTrace: {}", e.getMessage(), e.getStackTrace());
-        return new ErrorResponse(e.getParameter(), "Bad request", BAD_REQUEST.toString());
+    public ErrorResponse handleValidationException(MethodArgumentNotValidException e) {
+        List<String> errors = e.getBindingResult().getFieldErrors().stream()
+                .map(error -> String.format("Field: %s. Error: %s. Value: %s",
+                        error.getField(),
+                        error.getDefaultMessage(),
+                        error.getRejectedValue()))
+                .collect(Collectors.toList());
+
+        String message = "Validation failed: " + String.join(", ", errors);
+        log.warn("MethodArgumentNotValidException: {}", message);
+
+        return new ErrorResponse(message, "Incorrectly made request.", BAD_REQUEST.toString());
+    }
+
+    @ExceptionHandler({MissingServletRequestParameterException.class, HandlerMethodValidationException.class})
+    @ResponseStatus(BAD_REQUEST)
+    public ErrorResponse handleParameterValidationException(final Throwable e) {
+        log.warn("Parameter validation exception: {}", e.getMessage());
+        return new ErrorResponse(e.getMessage(), "Incorrectly made request.", BAD_REQUEST.toString());
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    @ResponseStatus(BAD_REQUEST)
+    public ErrorResponse handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
+        log.warn("HttpMessageNotReadableException: {}", e.getMessage());
+        String message = "Malformed JSON request. Check the request body.";
+        return new ErrorResponse(message, "Incorrectly made request.", BAD_REQUEST.toString());
+    }
+
+    @ExceptionHandler(Throwable.class)
+    @ResponseStatus(INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleOtherExceptions(final Throwable e) {
+        log.error("Unexpected error: ", e); // Логируем весь стек-трейс для отладки
+        return new ErrorResponse("An unexpected error occurred.", "Server error", INTERNAL_SERVER_ERROR.toString());
     }
 }

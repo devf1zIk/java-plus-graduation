@@ -38,6 +38,11 @@ public class RequestPrivateController {
         return requestService.cancelRequestByUser(userId, requestId);
     }
 
+    @GetMapping("/{userId}/events/{eventId}/requests")
+    public List<RequestDto> getEventRequests(@PathVariable Long userId, @PathVariable Long eventId) {
+        return requestService.getEventRequests(userId, eventId);
+    }
+
     @PatchMapping("/{userId}/events/{eventId}/requests")
     @ResponseStatus(HttpStatus.OK)
     public RequestStatusUpdateResponse updateRequest(@PathVariable Long userId, @PathVariable Long eventId,

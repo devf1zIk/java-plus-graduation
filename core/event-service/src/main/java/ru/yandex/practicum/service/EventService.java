@@ -2,13 +2,17 @@ package ru.yandex.practicum.service;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.client.StatsClient;
 import ru.yandex.practicum.dto.HitDto;
+import ru.yandex.practicum.dto.StatsDto;
 import ru.yandex.practicum.dto.event.*;
 import ru.yandex.practicum.dto.user.UserShortDto;
 import ru.yandex.practicum.enums.AdminEventAction;
@@ -26,18 +30,22 @@ import ru.yandex.practicum.model.EventCategory;
 import ru.yandex.practicum.model.Location;
 import ru.yandex.practicum.repository.EventCategoryRepository;
 import ru.yandex.practicum.repository.EventRepository;
+import ru.yandex.practicum.repository.EventSpecification;
 import ru.yandex.practicum.repository.LocationRepository;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class EventService {
 
     private final EventCategoryRepository categoryRepository;
+    private static final DateTimeFormatter STATS_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private final EventRepository eventRepository;
     private final LocationRepository locationRepository;
     private final UserClient userClient;
@@ -47,6 +55,13 @@ public class EventService {
 
     public EventDto create(CreateNewEventDto dto, Long userId) {
         userClient.getById(userId);
+
+        if (dto.getEventDate() != null &&
+                dto.getEventDate().isBefore(LocalDateTime.now().plusHours(2))) {
+            throw new BadRequestException(
+                    "eventDate не может быть раньше чем через 2 часа от текущего времени"
+            );
+        }
 
         EventCategory category = categoryRepository.findById(dto.getCategory())
                 .orElseThrow(() -> new NotFoundException("Категория не найдена"));
@@ -81,6 +96,9 @@ public class EventService {
         }
         if (dto.getStateAction() == AdminEventAction.PUBLISH_EVENT && event.getState() != EventState.PENDING) {
             throw new ConflictException("Публиковать можно только событие в состоянии PENDING");
+        }
+        if (dto.getStateAction() == AdminEventAction.REJECT_EVENT && event.getState() == EventState.PUBLISHED) {
+            throw new ConflictException("Нельзя отклонить опубликованное событие");
         }
 
         if (dto.getCategory() != null) {
@@ -130,34 +148,26 @@ public class EventService {
 
         Pageable pageable = getPageable(sort, from, size);
 
-        Page<Event> page;
-        if (end == null) {
-            page = eventRepository.findAllPublishedAfter(start, pageable);
-        } else {
-            page = eventRepository.findAllPublishedInRange(start, end, pageable);
+        Specification<Event> spec = Specification.where(EventSpecification.isPublished())
+                .and(EventSpecification.hasRangeStart(start));
+
+        if (end != null) {
+            spec = spec.and(EventSpecification.hasRangeEnd(end));
         }
 
-        List<Event> events = page.getContent();
-
         if (text != null && !text.isBlank()) {
-            String search = text.toUpperCase();
-            events = events.stream()
-                    .filter(e -> e.getAnnotation() != null && e.getAnnotation().toUpperCase().contains(search) ||
-                            e.getDescription() != null && e.getDescription().toUpperCase().contains(search))
-                    .toList();
+            spec = spec.and(EventSpecification.hasText(text));
         }
 
         if (categories != null && !categories.isEmpty()) {
-            events = events.stream()
-                    .filter(e -> e.getCategory() != null && categories.contains(e.getCategory().getId()))
-                    .toList();
+            spec = spec.and(EventSpecification.hasCategories(categories));
         }
 
         if (paid != null) {
-            events = events.stream()
-                    .filter(e -> e.getPaid() == paid)
-                    .toList();
+            spec = spec.and(EventSpecification.isPaid(paid));
         }
+        Page<Event> page = eventRepository.findAll(spec, pageable);
+        List<Event> events = page.getContent();
 
         if (events.isEmpty()) {
             return List.of();
@@ -229,6 +239,13 @@ public class EventService {
             throw new ConflictException("Редактировать можно только в PENDING или CANCELED");
         }
 
+        if (dto.getEventDate() != null &&
+                dto.getEventDate().isBefore(LocalDateTime.now().plusHours(2))) {
+            throw new BadRequestException(
+                    "eventDate не может быть раньше чем через 2 часа от текущего времени"
+            );
+        }
+
         if (dto.getCategory() != null) {
             EventCategory category = categoryRepository.findById(dto.getCategory())
                     .orElseThrow(() -> new NotFoundException("Категория не найдена"));
@@ -276,18 +293,31 @@ public class EventService {
 
         Pageable pageable = PageRequest.of(from / size, size);
 
-        Page<Event> page = eventRepository.findForAdmin(
-                users == null || users.isEmpty() ? null : users,
-                safeStates,
-                categories == null || categories.isEmpty() ? null : categories,
-                rangeStart == null ? null : rangeStart.atZone(ZoneOffset.UTC).toInstant(),
-                rangeEnd   == null ? null : rangeEnd.atZone(ZoneOffset.UTC).toInstant(),
-                pageable
-        );
+        Instant start = rangeStart == null ? null : rangeStart.atZone(ZoneOffset.UTC).toInstant();
+        Instant end = rangeEnd == null ? null : rangeEnd.atZone(ZoneOffset.UTC).toInstant();
+
+        Specification<Event> spec = Specification.where(null);
+
+        if (users != null && !users.isEmpty()) {
+            spec = spec.and(EventSpecification.hasUsers(users));
+        }
+        if (safeStates != null && !safeStates.isEmpty()) {
+            spec = spec.and(EventSpecification.hasStates(safeStates));
+        }
+        if (categories != null && !categories.isEmpty()) {
+            spec = spec.and(EventSpecification.hasCategories(categories));
+        }
+        if (start != null) {
+            spec = spec.and(EventSpecification.hasRangeStart(start));
+        }
+        if (end != null) {
+            spec = spec.and(EventSpecification.hasRangeEnd(end));
+        }
+
+        Page<Event> page = eventRepository.findAll(spec, pageable);
 
         return enrichFullDtos(page.getContent());
     }
-
 
     public EventDto getById(Long eventId, HttpServletRequest request) {
         Event event = getEventIfExist(eventId);
@@ -364,11 +394,83 @@ public class EventService {
     }
 
     private Integer getViews(Long eventId) {
-        return 0;
+        try {
+            String start = LocalDateTime.ofInstant(Instant.EPOCH, ZoneOffset.UTC).format(STATS_DATE_FORMATTER);
+            String end = LocalDateTime.now().format(STATS_DATE_FORMATTER);
+
+            ResponseEntity<Object> response = statsClient.getStats(
+                    start,
+                    end,
+                    List.of("/events/" + eventId),
+                    false
+            );
+
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> stats = (List<Map<String, Object>>) response.getBody();
+
+            if (stats == null || stats.isEmpty()) {
+                return 0;
+            }
+
+            Object hitsObject = stats.get(0).get("hits");
+            if (hitsObject instanceof Number) {
+                return ((Number) hitsObject).intValue();
+            }
+
+            return 0;
+        } catch (Exception e) {
+            log.error("Не удалось получить просмотры для события {}: {}", eventId, e.getMessage());
+            return 0;
+        }
     }
 
     private Map<Long, Integer> getViewsMap(List<Long> eventIds) {
-        return eventIds.stream().collect(Collectors.toMap(id -> id, id -> 0)); // заглушка
+        if (eventIds.isEmpty()) {
+            return Map.of();
+        }
+
+        try {
+            String start = LocalDateTime.ofInstant(Instant.EPOCH, ZoneOffset.UTC).format(STATS_DATE_FORMATTER);
+            String end = LocalDateTime.now().format(STATS_DATE_FORMATTER);
+
+            // Формируем список URI для запроса
+            List<String> uris = eventIds.stream()
+                    .map(id -> "/events/" + id)
+                    .toList();
+
+            ResponseEntity<Object> response = statsClient.getStats(start, end, uris, false);
+
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> stats = (List<Map<String, Object>>) response.getBody();
+
+            if (stats == null || stats.isEmpty()) {
+                return eventIds.stream().collect(Collectors.toMap(id -> id, id -> 0));
+            }
+
+            Map<Long, Integer> viewsMap = new HashMap<>();
+            for (Map<String, Object> stat : stats) {
+                String uri = (String) stat.get("uri");
+                if (uri != null && uri.startsWith("/events/")) {
+                    try {
+                        Long eventId = Long.parseLong(uri.substring(uri.lastIndexOf('/') + 1));
+                        Object hitsObject = stat.get("hits");
+                        if (hitsObject instanceof Number) {
+                            viewsMap.put(eventId, ((Number) hitsObject).intValue());
+                        }
+                    } catch (NumberFormatException e) {
+                        // log.warn("Не удалось извлечь ID события из URI: {}", uri);
+                    }
+                }
+            }
+
+            eventIds.forEach(id -> viewsMap.putIfAbsent(id, 0));
+
+            return viewsMap;
+
+        } catch (Exception e) {
+            log.error("Не удалось получить просмотры для событий {}: {}", eventIds, e.getMessage());
+            return eventIds.stream().collect(Collectors.toMap(id -> id, id -> 0));
+        }
     }
 
     private Pageable getPageable(String sort, int from, int size) {
