@@ -1,6 +1,5 @@
 package ru.yandex.practicum.dto.event;
 
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -19,7 +18,6 @@ public class UpdateEventAdminDto {
     private Long category;
     @Size(min = 20, max = 7000)
     private String description;
-    @NotNull(message = "eventDate обязателен")
     private LocalDateTime eventDate;
     private LocationDto location;
     private Boolean paid;

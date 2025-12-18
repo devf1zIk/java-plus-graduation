@@ -40,7 +40,6 @@ public class EventService {
     private final LocationRepository locationRepository;
     private final UserClient userClient;
     private final RequestClient requestClient;
-    private final StatsClient statsClient;
     private final EventMapper eventMapper;
 
     public EventDto create(CreateNewEventDto dto, Long userId) {
@@ -71,16 +70,16 @@ public class EventService {
     public EventDto updateByAdmin(Long eventId, UpdateEventAdminDto dto) {
         Event event = getEventIfExist(eventId);
 
-//        if (event.getEventDateTime() != null &&
-//                event.getEventDateTime().isBefore(Instant.from(LocalDateTime.now().plusHours(2)))) {
-//            throw new BadRequestException(
-//                    "eventDate не может быть раньше чем через 2 часа от текущего времени"
-//            );
-//        }
-//
-//        if (dto.getStateAction() == AdminEventAction.PUBLISH_EVENT && event.getState() != EventState.PENDING) {
-//            throw new ConflictException("Публиковать можно только событие в состоянии PENDING");
-//        }
+        if (event.getEventDateTime() != null &&
+                event.getEventDateTime().isBefore(Instant.from(LocalDateTime.now().plusHours(2)))) {
+            throw new BadRequestException(
+                    "eventDate не может быть раньше чем через 2 часа от текущего времени"
+            );
+        }
+
+        if (dto.getStateAction() == AdminEventAction.PUBLISH_EVENT && event.getState() != EventState.PENDING) {
+            throw new ConflictException("Публиковать можно только событие в состоянии PENDING");
+        }
 
         if (dto.getCategory() != null) {
             EventCategory category = categoryRepository.findById(dto.getCategory())

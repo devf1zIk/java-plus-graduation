@@ -12,11 +12,11 @@ public class RequestMapper {
             return null;
         }
         return new RequestDto(
-                participationrequest.getCreatedOn() != null ? participationrequest.getCreatedOn() : java.time.LocalDateTime.now(),
-                participationrequest.getEventId() != null ? participationrequest.getEventId() : 0L,
-                participationrequest.getId() != null ? participationrequest.getId() : 0L,
-                participationrequest.getRequesterId() != null ? participationrequest.getRequesterId() : 0L,
-                participationrequest.getStatus() != null ? participationrequest.getStatus() : ru.yandex.practicum.enums.RequestStatus.PENDING
+                participationrequest.getCreatedOn(),
+                participationrequest.getEventId(),
+                participationrequest.getId(),
+                participationrequest.getRequesterId(),
+                participationrequest.getStatus()
         );
     }
 }

@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.dto.request.RequestDto;
 import ru.yandex.practicum.dto.request.RequestStatusUpdateRequest;
 import ru.yandex.practicum.dto.request.RequestStatusUpdateResponse;
-import ru.yandex.practicum.exception.model.BadRequestException;
 import ru.yandex.practicum.service.RequestService;
 import java.util.List;
 
@@ -43,12 +42,6 @@ public class RequestPrivateController {
     @ResponseStatus(HttpStatus.OK)
     public RequestStatusUpdateResponse updateRequest(@PathVariable Long userId, @PathVariable Long eventId,
                                                      @RequestBody @Valid RequestStatusUpdateRequest request) {
-        if (request.getRequestIds() == null || request.getRequestIds().isEmpty()) {
-            throw new BadRequestException("requestIds не может быть пустым");
-        }
-        if (request.getStatus() == null) {
-            throw new BadRequestException("status не может быть null");
-        }
         return requestService.updateRequest(userId, eventId, request);
     }
 }
