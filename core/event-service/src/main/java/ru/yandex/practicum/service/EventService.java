@@ -12,6 +12,7 @@ import ru.yandex.practicum.dto.user.UserShortDto;
 import ru.yandex.practicum.enums.AdminEventAction;
 import ru.yandex.practicum.enums.EventState;
 import ru.yandex.practicum.enums.UserEventActions;
+import ru.yandex.practicum.exception.model.BadRequestException;
 import ru.yandex.practicum.exception.model.ConflictException;
 import ru.yandex.practicum.exception.model.NotFoundException;
 import ru.yandex.practicum.feign.request.RequestClient;
@@ -71,6 +72,13 @@ public class EventService {
     // ADMIN UPDATE
     public EventDto updateByAdmin(Long eventId, UpdateEventAdminDto dto) {
         Event event = getEventIfExist(eventId);
+
+        if (event.getEventDateTime() != null &&
+                event.getEventDateTime().isBefore(Instant.from(LocalDateTime.now().plusHours(2)))) {
+            throw new BadRequestException(
+                    "eventDate не может быть раньше чем через 2 часа от текущего времени"
+            );
+        }
 
         if (dto.getStateAction() == AdminEventAction.PUBLISH_EVENT && event.getState() != EventState.PENDING) {
             throw new ConflictException("Публиковать можно только событие в состоянии PENDING");
@@ -235,21 +243,33 @@ public class EventService {
         );
     }
 
-    // ADMIN SEARCH
     public List<EventDto> getAll(List<Long> users, List<String> states, List<Long> categories,
-                                 LocalDateTime rangeStart, LocalDateTime rangeEnd, int from, int size) {
-        List<EventState> eventStates = states == null ? null : states.stream().map(EventState::valueOf).toList();
-        Instant start = rangeStart == null ? Instant.now() : rangeStart.toInstant(ZoneOffset.UTC);
-        Instant end = rangeEnd == null ? null : rangeEnd.toInstant(ZoneOffset.UTC);
+                                 LocalDateTime rangeStart, LocalDateTime rangeEnd,
+                                 int from, int size) {
+
+        List<Long> safeUsers = users == null ? List.of() : users;
+        List<Long> safeCategories = categories == null ? List.of() : categories;
+        List<EventState> safeStates = states == null
+                ? List.of()
+                : states.stream().map(EventState::valueOf).toList();
+
+        Instant start = rangeStart == null ? Instant.EPOCH : rangeStart.toInstant(ZoneOffset.UTC);
+        Instant end = rangeEnd == null ? Instant.MAX : rangeEnd.toInstant(ZoneOffset.UTC);
 
         Pageable pageable = PageRequest.of(from / size, size);
 
-        Page<Event> page = end == null
-                ? eventRepository.findForAdminAfterDate(users, eventStates, categories, start, pageable)
-                : eventRepository.findForAdminInRange(users, eventStates, categories, start, end, pageable);
+        Page<Event> page = eventRepository.findForAdmin(
+                safeUsers,
+                safeStates,
+                safeCategories,
+                start,
+                end,
+                pageable
+        );
 
         return enrichFullDtos(page.getContent());
     }
+
 
     // PUBLIC SINGLE
     public EventDto getById(Long eventId) {

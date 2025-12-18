@@ -76,6 +76,13 @@ public class ExceptionApiHandler {
         return new ErrorResponse(e.getMessage(), "Unknown error", INTERNAL_SERVER_ERROR.toString());
     }
 
+    @ExceptionHandler(ForbiddenException.class)
+    @ResponseStatus(FORBIDDEN)
+    public ErrorResponse handleForbiddenException(ForbiddenException exception) {
+        log.warn("Access forbidden Message: {}, StackTrace: {}", exception.getMessage(), exception.getStackTrace());
+        return new ErrorResponse(exception.getMessage(), "Access forbidden", FORBIDDEN.toString());
+    }
+
     @ExceptionHandler(BadRequestException.class)
     @ResponseStatus(BAD_REQUEST)
     public ErrorResponse handleIncorrectParameterException(final BadRequestException e) {

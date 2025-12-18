@@ -29,9 +29,11 @@ public class CreateNewEventDto {
     @NotNull
     private LocalDateTime eventDate;
     private LocationDto location;
+    @NotNull
     private Boolean paid;
     @PositiveOrZero
-    private Long participantLimit;
+    private Integer participantLimit;
+    @NotNull
     private Boolean requestModeration;
     @NotBlank
     @Size(min = 3, max = 120)
