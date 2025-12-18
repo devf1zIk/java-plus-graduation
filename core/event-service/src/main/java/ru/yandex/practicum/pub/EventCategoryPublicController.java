@@ -4,6 +4,7 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.dto.category.EventCategoryDto;
 import ru.yandex.practicum.service.EventCategoryService;
@@ -11,6 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping(path = "/categories")
+@Validated
 public class EventCategoryPublicController {
 
     private final EventCategoryService categoryService;

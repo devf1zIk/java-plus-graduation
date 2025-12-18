@@ -9,6 +9,7 @@ import ru.yandex.practicum.dto.request.RequestStatusUpdateResponse;
 import ru.yandex.practicum.dto.user.UserShortDto;
 import ru.yandex.practicum.enums.RequestStatus;
 import ru.yandex.practicum.exception.model.ConflictException;
+import ru.yandex.practicum.exception.model.ForbiddenException;
 import ru.yandex.practicum.exception.model.NotFoundException;
 import ru.yandex.practicum.feign.event.EventClient;
 import ru.yandex.practicum.feign.user.UserClient;
@@ -32,7 +33,7 @@ public class RequestService {
         userClient.getById(userId);
         EventShortForRequestDto event = eventClient.getById(eventId);
         if (!Objects.equals(event.getOwnerId(), userId)) {
-            throw new NotFoundException("User с id " + userId + " не владелец события " + eventId);
+            throw new ForbiddenException("User с id " + userId + " не владелец события " + eventId);
         }
         List<ParticipationRequest> requests = requestRepository.findByEventId(eventId);
         return requests.stream()

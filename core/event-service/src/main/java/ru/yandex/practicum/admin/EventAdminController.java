@@ -12,6 +12,7 @@ import ru.yandex.practicum.client.StatsClient;
 import ru.yandex.practicum.dto.HitDto;
 import ru.yandex.practicum.dto.event.EventDto;
 import ru.yandex.practicum.dto.event.UpdateEventAdminDto;
+import ru.yandex.practicum.exception.model.BadRequestException;
 import ru.yandex.practicum.service.EventService;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -46,7 +47,6 @@ public class EventAdminController {
 
     @PatchMapping("/{eventId}")
     public EventDto updateEvent(@PathVariable Long eventId, @RequestBody @Valid UpdateEventAdminDto eventDto) {
-
         return eventService.updateByAdmin(eventId, eventDto);
     }
 

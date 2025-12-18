@@ -1,11 +1,13 @@
 package ru.yandex.practicum.controller;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.dto.request.RequestDto;
 import ru.yandex.practicum.dto.request.RequestStatusUpdateRequest;
 import ru.yandex.practicum.dto.request.RequestStatusUpdateResponse;
+import ru.yandex.practicum.exception.model.BadRequestException;
 import ru.yandex.practicum.service.RequestService;
 import java.util.List;
 
@@ -38,8 +40,15 @@ public class RequestPrivateController {
     }
 
     @PatchMapping("/{userId}/events/{eventId}/requests")
+    @ResponseStatus(HttpStatus.OK)
     public RequestStatusUpdateResponse updateRequest(@PathVariable Long userId, @PathVariable Long eventId,
-                                                     @RequestBody RequestStatusUpdateRequest request) {
+                                                     @RequestBody @Valid RequestStatusUpdateRequest request) {
+        if (request.getRequestIds() == null || request.getRequestIds().isEmpty()) {
+            throw new BadRequestException("requestIds не может быть пустым");
+        }
+        if (request.getStatus() == null) {
+            throw new BadRequestException("status не может быть null");
+        }
         return requestService.updateRequest(userId, eventId, request);
     }
 }
