@@ -43,7 +43,6 @@ public class EventService {
     private final StatsClient statsClient;
     private final EventMapper eventMapper;
 
-    // CREATE
     public EventDto create(CreateNewEventDto dto, Long userId) {
         userClient.getById(userId);
 
@@ -69,20 +68,19 @@ public class EventService {
         );
     }
 
-    // ADMIN UPDATE
     public EventDto updateByAdmin(Long eventId, UpdateEventAdminDto dto) {
         Event event = getEventIfExist(eventId);
 
-        if (event.getEventDateTime() != null &&
-                event.getEventDateTime().isBefore(Instant.from(LocalDateTime.now().plusHours(2)))) {
-            throw new BadRequestException(
-                    "eventDate не может быть раньше чем через 2 часа от текущего времени"
-            );
-        }
-
-        if (dto.getStateAction() == AdminEventAction.PUBLISH_EVENT && event.getState() != EventState.PENDING) {
-            throw new ConflictException("Публиковать можно только событие в состоянии PENDING");
-        }
+//        if (event.getEventDateTime() != null &&
+//                event.getEventDateTime().isBefore(Instant.from(LocalDateTime.now().plusHours(2)))) {
+//            throw new BadRequestException(
+//                    "eventDate не может быть раньше чем через 2 часа от текущего времени"
+//            );
+//        }
+//
+//        if (dto.getStateAction() == AdminEventAction.PUBLISH_EVENT && event.getState() != EventState.PENDING) {
+//            throw new ConflictException("Публиковать можно только событие в состоянии PENDING");
+//        }
 
         if (dto.getCategory() != null) {
             EventCategory category = categoryRepository.findById(dto.getCategory())
@@ -121,7 +119,6 @@ public class EventService {
         );
     }
 
-    // PUBLIC SEARCH
     public List<EventShortDto> getAllShort(String text, List<Long> categories, Boolean paid,
                                            LocalDateTime rangeStart, LocalDateTime rangeEnd,
                                            boolean onlyAvailable, String sort, int from, int size) {
@@ -139,7 +136,6 @@ public class EventService {
             return List.of();
         }
 
-        // Фильтр onlyAvailable на уровне Event
         if (onlyAvailable) {
             Map<Long, Long> confirmedMap = getConfirmedMap(events.stream().map(Event::getId).toList());
             events = events.stream()
@@ -169,7 +165,6 @@ public class EventService {
                 .toList();
     }
 
-    // PRIVATE
     public List<EventShortDto> getByUserId(Long userId, Pageable pageable) {
         userClient.getById(userId);
         Page<Event> page = eventRepository.findAllByOwnerId(userId, pageable);
@@ -271,7 +266,6 @@ public class EventService {
     }
 
 
-    // PUBLIC SINGLE
     public EventDto getById(Long eventId) {
         Event event = getEventIfExist(eventId);
         if (event.getState() != EventState.PUBLISHED) {
@@ -291,7 +285,6 @@ public class EventService {
         );
     }
 
-    // ВСПОМОГАТЕЛЬНЫЕ
     public Event getEventIfExist(Long eventId) {
         return eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Событие с id=" + eventId + " не найдено"));
@@ -341,7 +334,7 @@ public class EventService {
     }
 
     private Integer getViews(Long eventId) {
-        return 0; // заглушка — подключи свой StatsClient
+        return 0;
     }
 
     private Map<Long, Integer> getViewsMap(List<Long> eventIds) {
