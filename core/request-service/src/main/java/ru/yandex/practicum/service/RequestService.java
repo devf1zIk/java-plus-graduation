@@ -1,6 +1,7 @@
 package ru.yandex.practicum.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.dto.event.EventShortForRequestDto;
 import ru.yandex.practicum.dto.request.RequestDto;
@@ -21,6 +22,7 @@ import java.util.*;
 import static ru.yandex.practicum.enums.RequestStatus.CONFIRMED;
 import static ru.yandex.practicum.enums.RequestStatus.REJECTED;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RequestService {
@@ -30,8 +32,22 @@ public class RequestService {
     private final EventClient eventClient;
 
     public List<RequestDto> getEventRequests(Long userId, Long eventId) {
-        userClient.getById(userId);
-        EventShortForRequestDto event = eventClient.getById(eventId);
+        UserShortDto user;
+        try {
+            user = userClient.getById(userId);
+        } catch (Exception e) {
+            log.error("Ошибка при получении пользователя с id {}: {}", userId, e.getMessage());
+            throw new NotFoundException("Пользователь с id " + userId + " не найден");
+        }
+
+        EventShortForRequestDto event;
+        try {
+            event = eventClient.getById(eventId);
+        } catch (Exception e) {
+            log.error("Ошибка при получении события с id {}: {}", eventId, e.getMessage());
+            throw new NotFoundException("Событие с id " + eventId + " не найдено");
+        }
+
         if (!Objects.equals(event.getOwnerId(), userId)) {
             throw new ForbiddenException("User с id " + userId + " не владелец события " + eventId);
         }
@@ -42,8 +58,17 @@ public class RequestService {
     }
 
     public RequestStatusUpdateResponse updateRequest(Long userId, Long eventId, RequestStatusUpdateRequest requestDto) {
-        userClient.getById(userId);
-        EventShortForRequestDto event = eventClient.getById(eventId);
+        try {
+            userClient.getById(userId);
+        } catch (Exception e) {
+            throw new NotFoundException("Пользователь с id " + userId + " не найден");
+        }
+        EventShortForRequestDto event;
+        try {
+            event = eventClient.getById(eventId);
+        } catch (Exception e) {
+            throw new NotFoundException("Событие с id " + eventId + " не найдено");
+        }
 
         if (!Objects.equals(event.getOwnerId(), userId)) {
             throw new ForbiddenException("User с id " + userId + " не владелец события " + eventId);
@@ -95,15 +120,26 @@ public class RequestService {
     }
 
     public List<RequestDto> getByUserId(Long userId) {
-        userClient.getById(userId);
+        try {
+            userClient.getById(userId);
+        } catch (Exception e) {
+            throw new NotFoundException("Пользователь с id " + userId + " не найден");
+        }
         return requestRepository.findAllByRequesterId(userId).stream()
                 .map(RequestMapper::fromRequestTpRequestDto)
                 .toList();
     }
 
     public RequestDto create(Long userId, Long eventId) {
-        UserShortDto user = userClient.getById(userId);
-        EventShortForRequestDto event = eventClient.getById(eventId);
+        UserShortDto user;
+        EventShortForRequestDto event;
+        try {
+            user = userClient.getById(userId);
+            event = eventClient.getById(eventId);
+        } catch (Exception e) {
+            log.error("Ошибка Feign клиента при создании заявки: {}", e.getMessage());
+            throw new NotFoundException("Не удалось найти пользователя или событие");
+        }
 
         if (Objects.equals(user.getId(), event.getOwnerId())) {
             throw new ConflictException("Инициатор не может подать заявку на своё событие");
@@ -133,7 +169,11 @@ public class RequestService {
     }
 
     public RequestDto cancelRequestByUser(Long userId, Long requestId) {
-        userClient.getById(userId);
+        try {
+            userClient.getById(userId);
+        } catch (Exception e) {
+            throw new NotFoundException("Пользователь с id " + userId + " не найден");
+        }
         ParticipationRequest request = requestRepository.findById(requestId)
                 .orElseThrow(() -> new NotFoundException("Заявка не найдена"));
 
@@ -147,9 +187,8 @@ public class RequestService {
 
     public Map<Long, Long> getConfirmedRequestsCount(List<Long> eventIds) {
         if (eventIds == null || eventIds.isEmpty()) {
-            return Map.of();
+            return Collections.emptyMap();
         }
-
         List<Object[]> raw = requestRepository.countConfirmedByEventIdsRaw(eventIds);
         Map<Long, Long> result = new HashMap<>();
         for (Object[] row : raw) {

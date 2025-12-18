@@ -419,7 +419,6 @@ public class EventService {
 
             return 0;
         } catch (Exception e) {
-            log.error("Не удалось получить просмотры для события {}: {}", eventId, e.getMessage());
             return 0;
         }
     }
@@ -433,7 +432,6 @@ public class EventService {
             String start = LocalDateTime.ofInstant(Instant.EPOCH, ZoneOffset.UTC).format(STATS_DATE_FORMATTER);
             String end = LocalDateTime.now().format(STATS_DATE_FORMATTER);
 
-            // Формируем список URI для запроса
             List<String> uris = eventIds.stream()
                     .map(id -> "/events/" + id)
                     .toList();
@@ -458,17 +456,15 @@ public class EventService {
                             viewsMap.put(eventId, ((Number) hitsObject).intValue());
                         }
                     } catch (NumberFormatException e) {
-                        // log.warn("Не удалось извлечь ID события из URI: {}", uri);
+                        // Игнорируем некорректный URI
                     }
                 }
             }
 
             eventIds.forEach(id -> viewsMap.putIfAbsent(id, 0));
-
             return viewsMap;
 
         } catch (Exception e) {
-            log.error("Не удалось получить просмотры для событий {}: {}", eventIds, e.getMessage());
             return eventIds.stream().collect(Collectors.toMap(id -> id, id -> 0));
         }
     }
