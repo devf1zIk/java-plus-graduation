@@ -4,15 +4,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.client.StatsClient;
 import ru.yandex.practicum.dto.HitDto;
 import ru.yandex.practicum.dto.event.EventDto;
 import ru.yandex.practicum.dto.event.UpdateEventAdminDto;
-import ru.yandex.practicum.exception.model.BadRequestException;
 import ru.yandex.practicum.service.EventService;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,7 +20,6 @@ public class EventAdminController {
     private final StatsClient statClient;
     private final EventService eventService;
 
-    @Autowired
     public EventAdminController(StatsClient statClient, EventService eventService) {
         this.statClient = statClient;
         this.eventService = eventService;

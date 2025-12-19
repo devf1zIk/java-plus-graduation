@@ -4,7 +4,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.client.StatsClient;
@@ -12,7 +11,6 @@ import ru.yandex.practicum.dto.HitDto;
 import ru.yandex.practicum.dto.event.EventDto;
 import ru.yandex.practicum.dto.event.EventShortDto;
 import ru.yandex.practicum.service.EventService;
-
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -24,7 +22,6 @@ public class EventPublicController {
     private final StatsClient statClient;
 
 
-    @Autowired
     public EventPublicController(EventService eventService, StatsClient statClient) {
         this.eventService = eventService;
         this.statClient = statClient;

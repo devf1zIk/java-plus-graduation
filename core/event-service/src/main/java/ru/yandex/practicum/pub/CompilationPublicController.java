@@ -2,8 +2,6 @@ package ru.yandex.practicum.pub;
 
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.dto.compilation.CompilationDto;
 import ru.yandex.practicum.service.CompilationService;
@@ -15,7 +13,6 @@ public class CompilationPublicController {
 
     private final CompilationService compilationService;
 
-    @Autowired
     public CompilationPublicController(CompilationService compilationService) {
         this.compilationService = compilationService;
     }

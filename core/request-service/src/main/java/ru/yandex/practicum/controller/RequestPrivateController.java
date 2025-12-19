@@ -1,7 +1,6 @@
 package ru.yandex.practicum.controller;
 
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.dto.request.RequestDto;
@@ -16,7 +15,6 @@ public class RequestPrivateController {
 
     private final RequestService requestService;
 
-    @Autowired
     public RequestPrivateController(RequestService requestService) {
         this.requestService = requestService;
     }

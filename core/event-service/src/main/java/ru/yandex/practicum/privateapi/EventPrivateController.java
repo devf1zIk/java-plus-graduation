@@ -4,7 +4,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -26,7 +25,6 @@ public class EventPrivateController {
     private final EventService eventService;
     private final StatsClient statClient;
 
-    @Autowired
     public EventPrivateController(EventService eventService, StatsClient statClient) {
         this.eventService = eventService;
         this.statClient = statClient;
