@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import ru.yandex.practicum.exception.model.*;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.List;
 import java.util.stream.Collectors;
 import static org.springframework.http.HttpStatus.*;
@@ -144,6 +146,22 @@ public class ExceptionApiHandler {
         return new ErrorResponse(
                 "An unexpected error occurred.",
                 "Server error",
+                INTERNAL_SERVER_ERROR.toString()
+        );
+    }
+    @ExceptionHandler(Throwable.class)
+    @ResponseStatus(INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleInternalServerErrorWithStackTrace(final Throwable e) {
+        log.error("500 Internal Server Error: {}", e.getMessage(), e);
+
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        e.printStackTrace(pw);
+        String stackTrace = sw.toString();
+
+        return new ErrorResponse(
+                "Error occurred: " + e.getMessage(),
+                stackTrace,
                 INTERNAL_SERVER_ERROR.toString()
         );
     }

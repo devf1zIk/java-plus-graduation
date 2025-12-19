@@ -2,6 +2,7 @@ package ru.yandex.practicum.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotBlank;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -9,6 +10,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
+@Builder
 @RequiredArgsConstructor
 public class HitDto {
 
