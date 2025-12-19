@@ -2,6 +2,7 @@ package ru.yandex.practicum.exception.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -10,6 +11,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import ru.yandex.practicum.exception.model.*;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.List;
 import java.util.stream.Collectors;
 import static org.springframework.http.HttpStatus.*;
@@ -141,8 +145,13 @@ public class ExceptionApiHandler {
     @ResponseStatus(INTERNAL_SERVER_ERROR)
     public ErrorResponse handleOtherExceptions(Throwable e) {
         log.error("Unexpected error", e);
+
+        StringWriter sw = new StringWriter();
+        e.printStackTrace(new PrintWriter(sw));
+        String stackTrace = sw.toString();
+
         return new ErrorResponse(
-                "An unexpected error occurred.",
+                "An unexpected error occurred. Check server logs for details.",
                 "Server error",
                 INTERNAL_SERVER_ERROR.toString()
         );
