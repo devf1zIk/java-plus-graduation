@@ -12,7 +12,6 @@ import ru.yandex.practicum.service.EventCategoryService;
 public class EventCategoryAdminController {
     private final EventCategoryService categoryService;
 
-    @Autowired
     public EventCategoryAdminController(EventCategoryService categoryService) {
         this.categoryService = categoryService;
     }
