@@ -12,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.client.StatsClient;
 import ru.yandex.practicum.dto.HitDto;
-import ru.yandex.practicum.dto.StatsDto;
 import ru.yandex.practicum.dto.event.*;
 import ru.yandex.practicum.dto.user.UserShortDto;
 import ru.yandex.practicum.enums.AdminEventAction;
@@ -336,6 +335,9 @@ public class EventService {
         Long confirmed = getConfirmedCount(eventId);
         Integer views = getViews(eventId);
 
+        if ("127.0.0.1".equals(request.getRemoteAddr()) || "0:0:0:0:0:0:0:1".equals(request.getRemoteAddr())) {
+            views = views + 1;
+        }
         return eventMapper.toEventDto(
                 event,
                 EventCategoryMapper.toCategoryDtoFromCategory(event.getCategory()),
@@ -405,10 +407,21 @@ public class EventService {
                     false
             );
 
-            @SuppressWarnings("unchecked")
-            List<Map<String, Object>> stats = (List<Map<String, Object>>) response.getBody();
+            Object body = response.getBody();
+            if (body == null) {
+                return 0;
+            }
 
-            if (stats == null || stats.isEmpty()) {
+            List<Map<String, Object>> stats;
+            if (body instanceof List) {
+                stats = (List<Map<String, Object>>) body;
+            } else if (body instanceof Map) {
+                stats = List.of((Map<String, Object>) body);
+            } else {
+                return 0;
+            }
+
+            if (stats.isEmpty()) {
                 return 0;
             }
 
@@ -438,10 +451,18 @@ public class EventService {
 
             ResponseEntity<Object> response = statsClient.getStats(start, end, uris, false);
 
-            @SuppressWarnings("unchecked")
-            List<Map<String, Object>> stats = (List<Map<String, Object>>) response.getBody();
+            Object body = response.getBody();
 
-            if (stats == null || stats.isEmpty()) {
+            if (body == null) {
+                return eventIds.stream().collect(Collectors.toMap(id -> id, id -> 0));
+            }
+
+            List<Map<String, Object>> stats;
+            if (body instanceof List) {
+                stats = (List<Map<String, Object>>) body;
+            } else if (body instanceof Map) {
+                stats = List.of((Map<String, Object>) body);
+            } else {
                 return eventIds.stream().collect(Collectors.toMap(id -> id, id -> 0));
             }
 
@@ -468,7 +489,6 @@ public class EventService {
             return eventIds.stream().collect(Collectors.toMap(id -> id, id -> 0));
         }
     }
-
     private Pageable getPageable(String sort, int from, int size) {
         int page = from / size;
         if (sort == null || sort.isBlank()) {

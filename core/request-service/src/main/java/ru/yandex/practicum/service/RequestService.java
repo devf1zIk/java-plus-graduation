@@ -62,64 +62,114 @@ public class RequestService {
     }
 
     public RequestStatusUpdateResponse updateRequest(Long userId, Long eventId, RequestStatusUpdateRequest requestDto) {
-        try {
-            userClient.getById(userId);
-        } catch (Exception e) {
-            throw new NotFoundException("Пользователь с id " + userId + " не найден");
-        }
-        EventShortForRequestDto event;
-        try {
-            event = eventClient.getById(eventId);
-        } catch (Exception e) {
-            throw new NotFoundException("Событие с id " + eventId + " не найдено");
+        log.info("START updateRequest for userId: {}, eventId: {}, requestDto: {}", userId, eventId, requestDto);
+
+        if (requestDto == null || requestDto.getRequestIds() == null || requestDto.getStatus() == null) {
+            log.error("Invalid request data: requestDto is null or contains null fields");
+            throw new ConflictException("Некорректные данные для обновления заявки");
         }
 
-        if (!Objects.equals(event.getOwnerId(), userId)) {
+        UserShortDto user;
+        EventShortForRequestDto event;
+        try {
+            user = userClient.getById(userId);
+            event = eventClient.getById(eventId);
+        } catch (Exception e) {
+            log.error("Feign client error while fetching user or event: {}", e.getMessage());
+            throw new NotFoundException("Не удалось найти пользователя или событие");
+        }
+
+        if (user == null || event == null) {
+            log.error("User or event not found after Feign call. User: {}, Event: {}", user, event);
+            throw new NotFoundException("Не удалось найти пользователя или событие");
+        }
+
+        if (!Objects.equals(user.getId(), event.getOwnerId())) {
+            log.warn("Access denied: User {} is not owner of event {}", userId, eventId);
             throw new ForbiddenException("User с id " + userId + " не владелец события " + eventId);
         }
 
-        List<ParticipationRequest> requests = requestRepository.findAllByIdIn(requestDto.getRequestIds());
-        if (requests.isEmpty() || requests.stream().noneMatch(r -> r.getStatus() == RequestStatus.PENDING)) {
+        List<ParticipationRequest> requests;
+        try {
+            requests = requestRepository.findAllByIdIn(requestDto.getRequestIds());
+        } catch (Exception e) {
+            log.error("Database error while fetching requests by IDs: {}", e.getMessage());
+            throw new ConflictException("Ошибка при получении заявок из базы данных");
+        }
+
+        if (requests.isEmpty()) {
+            log.warn("No requests found for IDs: {}", requestDto.getRequestIds());
+            throw new ConflictException("Заявки с указанными ID не найдены");
+        }
+
+        boolean hasPendingRequests = requests.stream().anyMatch(r -> r.getStatus() == RequestStatus.PENDING);
+        if (!hasPendingRequests) {
+            log.warn("No pending requests found among: {}", requests.stream().map(ParticipationRequest::getId).toList());
             throw new ConflictException("Нет pending-запросов для обновления");
         }
 
-        Long confirmedCount = requestRepository.countByEventIdAndStatus(eventId, RequestStatus.CONFIRMED);
+        Long confirmedCount;
+        try {
+            confirmedCount = requestRepository.countByEventIdAndStatus(eventId, RequestStatus.CONFIRMED);
+        } catch (Exception e) {
+            log.error("Database error while counting confirmed requests: {}", e.getMessage());
+            confirmedCount = 0L;
+        }
 
         RequestStatusUpdateResponse response = new RequestStatusUpdateResponse(new HashSet<>(), new HashSet<>());
 
-        if (!event.getIsModerated() || event.getParticipantLimit() == 0) {
-            requests.forEach(r -> r.setStatus(RequestStatus.CONFIRMED));
-            response.getConfirmedRequests().addAll(requests.stream().map(RequestMapper::fromRequestToRequestDto).toList());
-        } else if (requestDto.getStatus() == CONFIRMED) {
-            if (confirmedCount >= event.getParticipantLimit()) {
-                throw new ConflictException("Лимит участников достигнут");
-            }
-
-            for (ParticipationRequest request : requests) {
-                if (request.getStatus() == RequestStatus.PENDING) {
-                    if (confirmedCount < event.getParticipantLimit()) {
-                        request.setStatus(RequestStatus.CONFIRMED);
-                        response.getConfirmedRequests().add(RequestMapper.fromRequestToRequestDto(request));
-                        confirmedCount++;
-                    } else {
+        try {
+            if (!event.getIsModerated() || event.getParticipantLimit() == 0) {
+                log.info("Auto-confirming all requests for event {}", eventId);
+                for (ParticipationRequest request : requests) {
+                    request.setStatus(RequestStatus.CONFIRMED);
+                    response.getConfirmedRequests().add(RequestMapper.fromRequestToRequestDto(request));
+                }
+            } else if (requestDto.getStatus() == CONFIRMED) {
+                log.info("Manually confirming requests for event {}. Confirmed: {}, Limit: {}", eventId, confirmedCount, event.getParticipantLimit());
+                if (confirmedCount >= event.getParticipantLimit()) {
+                    log.warn("Participant limit reached for event {}", eventId);
+                    throw new ConflictException("Лимит участников достигнут");
+                }
+                for (ParticipationRequest request : requests) {
+                    if (request.getStatus() == RequestStatus.PENDING) {
+                        if (confirmedCount < event.getParticipantLimit()) {
+                            request.setStatus(RequestStatus.CONFIRMED);
+                            response.getConfirmedRequests().add(RequestMapper.fromRequestToRequestDto(request));
+                            confirmedCount++;
+                        } else {
+                            request.setStatus(RequestStatus.REJECTED);
+                            response.getRejectedRequests().add(RequestMapper.fromRequestToRequestDto(request));
+                        }
+                    }
+                }
+            } else if (requestDto.getStatus() == REJECTED) {
+                log.info("Manually rejecting requests for event {}", eventId);
+                for (ParticipationRequest request : requests) {
+                    if (request.getStatus() == RequestStatus.CONFIRMED) {
+                        log.warn("Attempt to reject a confirmed request: {}", request.getId());
+                        throw new ConflictException("Нельзя отклонить уже подтвержденную заявку");
+                    }
+                    if (request.getStatus() == RequestStatus.PENDING) {
                         request.setStatus(RequestStatus.REJECTED);
                         response.getRejectedRequests().add(RequestMapper.fromRequestToRequestDto(request));
                     }
                 }
             }
-        } else if (requestDto.getStatus() == REJECTED) {
-            for (ParticipationRequest request : requests) {
-                if (request.getStatus() == RequestStatus.CONFIRMED) {
-                    throw new ConflictException("Нельзя отклонить уже подтвержденную заявку");
-                }
-                if (request.getStatus() == RequestStatus.PENDING) {
-                    request.setStatus(RequestStatus.REJECTED);
-                    response.getRejectedRequests().add(RequestMapper.fromRequestToRequestDto(request));
-                }
-            }
+        } catch (Exception e) {
+            log.error("Error during status update logic: {}", e.getMessage());
+            throw new ConflictException("Ошибка при обновлении статусов заявок");
         }
 
-        requestRepository.saveAll(requests);
+        try {
+            log.info("Saving {} requests to database", requests.size());
+            requestRepository.saveAll(requests);
+        } catch (Exception e) {
+            log.error("Database error while saving requests: {}", e.getMessage());
+            throw new ConflictException("Ошибка при сохранении заявок в базу данных");
+        }
+
+        log.info("END updateRequest. Returning response: {}", response);
         return response;
     }
 
