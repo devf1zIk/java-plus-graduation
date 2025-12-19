@@ -1,0 +1,27 @@
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  application:
+    name: request-service
+  config:
+    import: "configserver:"
+  cloud:
+    config:
+      discovery:
+        enabled: true
+        service-id: config-server
+      retry:
+        use-random-policy: true
+        max-interval: 6000
+      fail-fast: true
+  profiles:
+    active: dev
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${eureka.instance.hostname:localhost}:${server.instance.port:8761}/eureka
+  instance:
+    preferIpAddress: true
+    hostname: localhost
+    instance-id: "${spring.application.name}:${random.value}"
+    leaseRenewalIntervalInSeconds: 10

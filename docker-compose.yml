@@ -15,19 +15,70 @@ services:
       retries: 10
     volumes:
       - ./stats/stats-server/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
-  ewm-db:
+  comments-db:
     image: postgres:16.1
-    container_name: ewm-db
+    container_name: comments-db
     ports:
-      - "5432:5432"
+      - "5434:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: ewm-main
+      POSTGRES_DB: ewm-comments
     healthcheck:
       test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
       timeout: 5s
       interval: 5s
       retries: 10
     volumes:
-      - ./core/main-service/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./core/comment-service/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+
+  events-db:
+    image: postgres:16.1
+    container_name: events-db
+    ports:
+      - "5435:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ewm-events
+    healthcheck:
+      test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
+      timeout: 5s
+      interval: 5s
+      retries: 10
+    volumes:
+      - ./core/event-service/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+
+  requests-db:
+    image: postgres:16.1
+    container_name: requests-db
+    ports:
+      - "5436:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ewm-requests # Своя уникальная БД
+    healthcheck:
+      test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
+      timeout: 5s
+      interval: 5s
+      retries: 10
+    volumes:
+      - ./core/request-service/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+
+  users-db:
+    image: postgres:16.1
+    container_name: users-db
+    ports:
+      - "5437:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ewm-users
+    healthcheck:
+      test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
+      timeout: 5s
+      interval: 5s
+      retries: 10
+    volumes:
+      - ./core/user-service/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
