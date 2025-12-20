@@ -26,3 +26,6 @@ spring:
     url: jdbc:postgresql://localhost:5432/ewm-users
     username: postgres
     password: password
+grpc:
+  server:
+    port: 0

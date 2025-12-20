@@ -6,8 +6,6 @@ import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.client.StatsClient;
-import ru.yandex.practicum.dto.HitDto;
 import ru.yandex.practicum.dto.event.EventDto;
 import ru.yandex.practicum.dto.event.EventShortDto;
 import ru.yandex.practicum.service.EventService;
@@ -19,21 +17,27 @@ import java.util.List;
 public class EventPublicController {
 
     private final EventService eventService;
-    private final StatsClient statClient;
 
 
-    public EventPublicController(EventService eventService, StatsClient statClient) {
+    public EventPublicController(EventService eventService) {
         this.eventService = eventService;
-        this.statClient = statClient;
     }
 
-    @GetMapping("/{id}")
-    public EventDto getEvent(@PathVariable Long id,
-                             HttpServletRequest request) {
-        statClient.create(new HitDto(request.getRemoteAddr(), "app", request.getRequestURI(),
-                LocalDateTime.now()));
+    @GetMapping("/{eventId}")
+    public EventDto getById(@PathVariable Long eventId,
+                                @RequestHeader("X-EWM-USER-ID") Long userId) {
+        return eventService.getPublicEvent(eventId, userId);
+    }
 
-        return eventService.getById(id,request);
+    @PutMapping("/{eventId}/like")
+    public void likeEvent(@RequestHeader("X-EWM-USER-ID") Long userId, @PathVariable Long eventId) {
+        eventService.likeEvent(userId, eventId);
+    }
+
+    @GetMapping("/recommendations")
+    public List<EventShortDto> getRecommendations(@RequestHeader("X-EWM-USER-ID") Long userId,
+                                                  @RequestParam(defaultValue = "10") int size) {
+        return eventService.getRecommendations(userId, size);
     }
 
     @GetMapping
@@ -48,10 +52,7 @@ public class EventPublicController {
                                             boolean onlyAvailable,
                                             @RequestParam(value = "sort", required = false) String sort,
                                             @PositiveOrZero @RequestParam(value = "from", defaultValue = "0") int from,
-                                            @Positive @RequestParam(value = "size", defaultValue = "10") int size,
-                                            HttpServletRequest request) {
-        statClient.create(new HitDto(request.getRemoteAddr(), "app", request.getRequestURI(),
-                LocalDateTime.now()));
+                                            @Positive @RequestParam(value = "size", defaultValue = "10") int size) {
 
         return eventService.getAllShort(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size);
     }

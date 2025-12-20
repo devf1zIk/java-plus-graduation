@@ -15,7 +15,7 @@ public class InternalEventController {
 
     @GetMapping("/{eventId}")
     public EventShortForRequestDto getById(@PathVariable Long eventId) {
-        Event event = eventService.getEventIfExist(eventId);
+        Event event = eventService.getEvent(eventId);
         return EventShortForRequestDto.builder()
                 .id(event.getId())
                 .ownerId(event.getOwnerId())

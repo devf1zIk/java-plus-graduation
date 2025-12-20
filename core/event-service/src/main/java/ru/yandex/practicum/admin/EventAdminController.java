@@ -1,13 +1,10 @@
 package ru.yandex.practicum.admin;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.client.StatsClient;
-import ru.yandex.practicum.dto.HitDto;
 import ru.yandex.practicum.dto.event.EventDto;
 import ru.yandex.practicum.dto.event.UpdateEventAdminDto;
 import ru.yandex.practicum.service.EventService;
@@ -17,11 +14,9 @@ import java.util.List;
 @RestController
 @RequestMapping(path = "/admin/events")
 public class EventAdminController {
-    private final StatsClient statClient;
     private final EventService eventService;
 
-    public EventAdminController(StatsClient statClient, EventService eventService) {
-        this.statClient = statClient;
+    public EventAdminController(EventService eventService) {
         this.eventService = eventService;
     }
 
@@ -34,9 +29,7 @@ public class EventAdminController {
                                  @RequestParam(value = "rangeEnd", required = false)
                                  @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeEnd,
                                  @PositiveOrZero @RequestParam(value = "from", defaultValue = "0") int from,
-                                 @Positive @RequestParam(value = "size", defaultValue = "10") int size,
-                                 HttpServletRequest request) {
-        statClient.create(new HitDto(request.getRemoteAddr(), "app", "/events", LocalDateTime.now()));
+                                 @Positive @RequestParam(value = "size", defaultValue = "10") int size) {
 
         return eventService.getAll(users, states, categories, rangeStart, rangeEnd, from, size);
     }

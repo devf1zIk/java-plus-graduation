@@ -1,33 +1,69 @@
+version: '3.9'
+
 services:
+  kafka:
+    image: confluentinc/confluent-local:7.4.3
+    container_name: kafka
+    hostname: kafka
+    ports:
+      - "9092:9092"  # client
+      - "9101:9101"  # JMX
+    restart: unless-stopped
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_NODE_ID: 1
+      KAFKA_JMX_PORT: 9101
+      KAFKA_JMX_HOSTNAME: localhost
+      CLUSTER_ID: K0EA9p0yEe6MkAAAAkKsEg
+
+  kafka-init-topics:
+    image: confluentinc/confluent-local:7.4.3
+    container_name: kafka-init-topics
+    depends_on:
+      - kafka
+    command: >
+      bash -c "
+      kafka-topics --create --topic stats.user-actions.v1 --partitions 1 --replication-factor 1 --if-not-exists --bootstrap-server kafka:9092 &&
+      kafka-topics --create --topic stats.events-similarity.v1 --partitions 1 --replication-factor 1 --if-not-exists --bootstrap-server kafka:9092
+      "
+    restart: "no"
+
   stats-db:
     image: postgres:16.1
     container_name: stats-db
     ports:
       - "5433:5432"
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: ewm-stats
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "password"
+      POSTGRES_DB: "ewm-stats"
     healthcheck:
-      test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
-      timeout: 5s
+      test: ["CMD-SHELL", "pg_isready -q -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
       interval: 5s
+      timeout: 5s
       retries: 10
     volumes:
       - ./stats/stats-server/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+
   comments-db:
     image: postgres:16.1
     container_name: comments-db
     ports:
       - "5434:5432"
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: ewm-comments
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "password"
+      POSTGRES_DB: "ewm-comments"
     healthcheck:
-      test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
-      timeout: 5s
+      test: ["CMD-SHELL", "pg_isready -q -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
       interval: 5s
+      timeout: 5s
       retries: 10
     volumes:
       - ./core/comment-service/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
@@ -37,14 +73,15 @@ services:
     container_name: events-db
     ports:
       - "5435:5432"
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: ewm-events
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "password"
+      POSTGRES_DB: "ewm-events"
     healthcheck:
-      test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
-      timeout: 5s
+      test: ["CMD-SHELL", "pg_isready -q -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
       interval: 5s
+      timeout: 5s
       retries: 10
     volumes:
       - ./core/event-service/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
@@ -54,14 +91,15 @@ services:
     container_name: requests-db
     ports:
       - "5436:5432"
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: ewm-requests # Своя уникальная БД
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "password"
+      POSTGRES_DB: "ewm-requests"
     healthcheck:
-      test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
-      timeout: 5s
+      test: ["CMD-SHELL", "pg_isready -q -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
       interval: 5s
+      timeout: 5s
       retries: 10
     volumes:
       - ./core/request-service/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
@@ -71,14 +109,15 @@ services:
     container_name: users-db
     ports:
       - "5437:5432"
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: ewm-users
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "password"
+      POSTGRES_DB: "ewm-users"
     healthcheck:
-      test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
-      timeout: 5s
+      test: ["CMD-SHELL", "pg_isready -q -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
       interval: 5s
+      timeout: 5s
       retries: 10
     volumes:
       - ./core/user-service/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql

@@ -21,6 +21,8 @@ import ru.yandex.practicum.model.ParticipationRequest;
 import ru.yandex.practicum.repository.RequestRepository;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
+
 import static ru.yandex.practicum.enums.RequestStatus.CONFIRMED;
 import static ru.yandex.practicum.enums.RequestStatus.REJECTED;
 
@@ -254,5 +256,16 @@ public class RequestService {
             log.error("Ошибка при получении количества заявок для события {}: {}", eventId, e.getMessage());
             return 0L;
         }
+    }
+
+    public boolean hasVisitedEvent(Long userId, Long eventId) {
+        return requestRepository.existsByRequesterIdAndEventIdAndStatus(userId, eventId, RequestStatus.CONFIRMED);
+    }
+
+    public Map<Long, Long> countConfirmedByEventIds(List<Long> eventIds) {
+        return requestRepository
+                .countByEventIdsAndStatus(eventIds, RequestStatus.CONFIRMED)
+                .stream()
+                .collect(Collectors.toMap(row -> (Long) row[0], row -> (Long) row[1]));
     }
 }

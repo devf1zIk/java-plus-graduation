@@ -1,6 +1,5 @@
 package ru.yandex.practicum.privateapi;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -8,14 +7,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.client.StatsClient;
-import ru.yandex.practicum.dto.HitDto;
 import ru.yandex.practicum.dto.event.CreateNewEventDto;
 import ru.yandex.practicum.dto.event.EventDto;
 import ru.yandex.practicum.dto.event.EventShortDto;
 import ru.yandex.practicum.dto.event.UpdateEventUserRequest;
 import ru.yandex.practicum.service.EventService;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -23,20 +19,16 @@ import java.util.List;
 public class EventPrivateController {
 
     private final EventService eventService;
-    private final StatsClient statClient;
 
-    public EventPrivateController(EventService eventService, StatsClient statClient) {
+    public EventPrivateController(EventService eventService) {
         this.eventService = eventService;
-        this.statClient = statClient;
     }
 
     @GetMapping("/{userId}/events")
     public List<EventShortDto> getUserEvents(@PathVariable Long userId,
                                              @PositiveOrZero @RequestParam(value = "from", defaultValue = "0") int from,
-                                             @Positive @RequestParam(value = "size", defaultValue = "10") int size,
-                                             HttpServletRequest request) {
+                                             @Positive @RequestParam(value = "size", defaultValue = "10") int size) {
         Pageable paging = PageRequest.of(from, size);
-        statClient.create(new HitDto(request.getRemoteAddr(), "app", "/events", LocalDateTime.now()));
 
         return eventService.getByUserId(userId, paging);
     }
@@ -49,17 +41,14 @@ public class EventPrivateController {
     }
 
     @GetMapping("/{userId}/events/{eventId}")
-    public EventDto getUserEvents(@PathVariable Long userId, @PathVariable Long eventId, HttpServletRequest request) {
-        statClient.create(new HitDto(request.getRemoteAddr(), "app", "/events", LocalDateTime.now()));
+    public EventDto getUserEvents(@PathVariable Long userId, @PathVariable Long eventId) {
 
         return eventService.getEventByUserId(userId, eventId);
     }
 
     @PatchMapping("/{userId}/events/{eventId}")
     public EventDto updateEvent(@RequestBody @Valid UpdateEventUserRequest eventDto,
-                                @PathVariable Long userId, @PathVariable Long eventId, HttpServletRequest request) {
-        statClient.create(new HitDto(request.getRemoteAddr(), "app", "/events/" + eventId,
-                LocalDateTime.now()));
+                                @PathVariable Long userId, @PathVariable Long eventId) {
 
         return eventService.updateByUser(eventDto, userId, eventId);
     }

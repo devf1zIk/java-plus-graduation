@@ -24,4 +24,14 @@ public class InternalRequestController {
                                  @RequestParam(defaultValue = "CONFIRMED") RequestStatus status) {
         return requestService.getCountByStatus(eventId, status);
     }
+
+    @GetMapping("/confirmed")
+    public boolean hasConfirmedRequest(@RequestParam Long userId, @RequestParam Long eventId) {
+        return requestService.hasVisitedEvent(userId, eventId);
+    }
+
+    @PostMapping("/confirmed/batch")
+    public Map<Long, Long> countConfirmedByEventIds(@RequestBody List<Long> eventIds) {
+        return requestService.countConfirmedByEventIds(eventIds);
+    }
 }
