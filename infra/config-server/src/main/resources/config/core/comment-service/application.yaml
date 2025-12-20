@@ -1,28 +1,22 @@
-main:
-  service:
-    name: comment-service
-server:
-  port: 0
 spring:
-  application:
-    name: comment-service
-  sql:
-    init:
-      mode: always
+  datasource:
+    initialization-mode: always
+    driverClassName: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5436/comment
+    username: comment
+    password: comment
   jpa:
     show-sql: true
+    defer-datasource-initialization: true
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
     properties:
       hibernate:
         format_sql: true
-        jdbc:
-          time_zone: UTC
-          lob:
-            non_contextual_creation: true
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-  datasource:
-    driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/ewm-comments
-    username: postgres
-    password: password
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  sql:
+    init:
+      mode: always
+
+server:
+  port: 0

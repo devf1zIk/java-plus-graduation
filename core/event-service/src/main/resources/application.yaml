@@ -1,25 +1,24 @@
 spring:
-  main:
-    allow-bean-definition-overriding: true
   application:
     name: event-service
+
   config:
     import: "configserver:"
+
   cloud:
     config:
+      fail-fast: true
+      retry:
+        useRandomPolicy: true
+        max-interval: 6000
       discovery:
         enabled: true
-        service-id: config-server
-      retry:
-        use-random-policy: true
-        max-interval: 6000
-      fail-fast: true
-  profiles:
-    active: dev
+        serviceId: config-server
+
 eureka:
   client:
-    service-url:
-      defaultZone: http://${eureka.instance.hostname:localhost}:${server.instance.port:8761}/eureka
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
   instance:
     preferIpAddress: true
     hostname: localhost

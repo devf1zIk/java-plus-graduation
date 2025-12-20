@@ -1,9 +1,9 @@
 services:
   stats-db:
     image: postgres:16.1
-    container_name: stats-db
+    container_name: postgres-ewm-stats-db
     ports:
-      - "5433:5432"
+      - "5432:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
@@ -13,72 +13,63 @@ services:
       timeout: 5s
       interval: 5s
       retries: 10
-    volumes:
-      - ./stats/stats-server/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
-  comments-db:
+
+  event-db:
     image: postgres:16.1
-    container_name: comments-db
+    container_name: postgres-ewm-event-db
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=ewm-events
+    healthcheck:
+      test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
+      timeout: 5s
+      interval: 5s
+      retries: 10
+
+  user-db:
+    image: postgres:16.1
+    container_name: postgres-ewm-user-db
     ports:
       - "5434:5432"
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: ewm-comments
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=ewm-users
     healthcheck:
       test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
       timeout: 5s
       interval: 5s
       retries: 10
-    volumes:
-      - ./core/comment-service/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
 
-  events-db:
+  request-db:
     image: postgres:16.1
-    container_name: events-db
+    container_name: postgres-ewm-request-db
     ports:
       - "5435:5432"
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: ewm-events
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=ewm-requests
     healthcheck:
       test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
       timeout: 5s
       interval: 5s
       retries: 10
-    volumes:
-      - ./core/event-service/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
 
-  requests-db:
+  comment-db:
     image: postgres:16.1
-    container_name: requests-db
+    container_name: postgres-ewm-comment-db
     ports:
       - "5436:5432"
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: ewm-requests # Своя уникальная БД
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=ewm-comments
     healthcheck:
       test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
       timeout: 5s
       interval: 5s
       retries: 10
-    volumes:
-      - ./core/request-service/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
-
-  users-db:
-    image: postgres:16.1
-    container_name: users-db
-    ports:
-      - "5437:5432"
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: ewm-users
-    healthcheck:
-      test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
-      timeout: 5s
-      interval: 5s
-      retries: 10
-    volumes:
-      - ./core/user-service/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql

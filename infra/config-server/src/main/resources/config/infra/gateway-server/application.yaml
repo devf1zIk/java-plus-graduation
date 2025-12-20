@@ -1,47 +1,32 @@
 server:
   port: 8080
+
 spring:
-  application:
-    name: gateway-server
   cloud:
     gateway:
-      discovery:
-        locator:
-          enabled: true
-          lower-case-service-id: true
+      discovery.locator.enabled: true
       routes:
-        - id: event-service
-          uri: lb://EVENT-SERVICE
+        - id: stats_server_route
+          uri: lb://stats-server
           predicates:
-            - Path=/events/**,/categories/**,/compilations/**,/admin/events/**,/admin/categories/**,/admin/compilations/**,/users/{userId}/events/**,/internal/events/**
+            - Path=/hit, /stats
 
-        - id: user-service
-          uri: lb://USER-SERVICE
+        - id: user_service_route
+          uri: lb://user-service
           predicates:
-            - Path=/admin/users/**,/internal/users/**
+            - Path=/admin/users/**
 
-        - id: request-service
-          uri: lb://REQUEST-SERVICE
+        - id: request_service_route
+          uri: lb://request-service
           predicates:
-            - Path=/users/{userId}/requests/**,/users/{userId}/events/{eventId}/requests/**,/internal/requests/**
-        - id: comment-service
-          uri: lb://COMMENT-SERVICE
-          predicates:
-            - Path=/users/{userId}/comments/**,/events/{eventId}/comments/**,/comments/{commentId}
-        - id: stats-service
-          uri: lb://STATS-SERVER
-          predicates:
-            - Path=/hits,/stats/**
+            - Path=/users/*/requests/**, /requests/**, /requests
 
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,gateway
-  endpoint:
-    gateway:
-      enabled: true
+        - id: comment_service_route
+          uri: lb://comment-service
+          predicates:
+            - Path=/users/*/events/*/comments/**, /comments/**, /admin/comments/**
 
-logging:
-  level:
-    org.springframework.cloud.gateway: DEBUG
+        - id: event_service_route
+          uri: lb://event-service
+          predicates:
+            - Path=/**
