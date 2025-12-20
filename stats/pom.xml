@@ -10,8 +10,8 @@
 
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>ru.yandex.practicum.stats</groupId>
-    <artifactId>stats-service</artifactId>
+    <groupId>ru.yandex.practicum</groupId>
+    <artifactId>stats</artifactId>
     <packaging>pom</packaging>
     <modules>
         <module>stats-client</module>
