@@ -1,5 +1,5 @@
 server:
-  port: 8888
+  port: 0
 
 spring:
   application:
@@ -11,13 +11,13 @@ spring:
       server:
         native:
           searchLocations:
-            - classpath:config/{application}
-            - classpath:config/infra/{application}
             - classpath:config/core/{application}
+            - classpath:config/stats/{application}
+            - classpath:config/infra/{application}
 
 eureka:
+  instance:
+    hostname: localhost
   client:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
-  instance:
-    preferIpAddress: true

@@ -1,22 +1,27 @@
 spring:
   datasource:
-    initialization-mode: always
-    driverClassName: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5434/user
-    username: user
-    password: user
+    url: jdbc:postgresql://localhost:6544/user-db
+    username: stat
+    password: stat
+    driver-class-name: org.postgresql.Driver
+
   jpa:
-    show-sql: true
-    defer-datasource-initialization: true
+    database: postgresql
     hibernate:
       ddl-auto: update
     properties:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
+
   sql:
     init:
-      mode: always
+      mode: never
+      schema-locations: classpath:schema.sql
+      data-locations: classpath:data.sql
 
-server:
-  port: 0
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

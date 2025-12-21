@@ -1,32 +1,101 @@
-server:
-  port: 8080
-
 spring:
   cloud:
     gateway:
       discovery.locator.enabled: true
       routes:
-        - id: stats_server_route
-          uri: lb://stats-server
-          predicates:
-            - Path=/hit, /stats
-
-        - id: user_service_route
+        # USER-SERVICE контроллеры
+        - id: user_service_routes
           uri: lb://user-service
           predicates:
             - Path=/admin/users/**
 
-        - id: request_service_route
-          uri: lb://request-service
-          predicates:
-            - Path=/users/*/requests/**, /requests/**, /requests
-
-        - id: comment_service_route
+        # COMMENT-SERVICE контроллеры
+        - id: admin_comment_service_routes
           uri: lb://comment-service
           predicates:
-            - Path=/users/*/events/*/comments/**, /comments/**, /admin/comments/**
+            - Path=/admin/comments/**
 
-        - id: event_service_route
+        - id: private_comment_service_routes
+          uri: lb://comment-service
+          predicates:
+            - Path=/users/{userId}/comments/**
+
+        - id: public_comment_service_routes
+          uri: lb://comment-service
+          predicates:
+            - Path=/events/{eventId}/comments/**
+
+        # REQUEST-SERVICE контроллеры
+        - id: private_request_service_routes
+          uri: lb://request-service
+          predicates:
+            - Path=/users/{userId}/requests/**
+
+        # EVENT-SERVICE контроллеры
+        - id: admin_categories_event_service_routes
           uri: lb://event-service
           predicates:
-            - Path=/**
+            - Path=/admin/categories/**
+
+        - id: admin_compilation_event_service_routes
+          uri: lb://event-service
+          predicates:
+            - Path=/admin/compilations/**
+
+        - id: admin_event_service_routes
+          uri: lb://event-service
+          predicates:
+            - Path=/admin/events/**
+
+        - id: main_event_service_routes
+          uri: lb://event-service
+          predicates:
+            - Path=/main/**
+
+        - id: private_event_service_routes
+          uri: lb://event-service
+          predicates:
+            - Path=/users/{userId}/events/**
+
+        - id: public_category_event_service_routes
+          uri: lb://event-service
+          predicates:
+            - Path=/categories/**
+
+        - id: public_compilation_event_service_routes
+          uri: lb://event-service
+          predicates:
+            - Path=/compilations/**
+
+        - id: public_event_service_routes
+          uri: lb://event-service
+          predicates:
+            - Path=/events/**
+
+      default-filters:
+        - name: Retry
+          args:
+            retries: 3
+            methods: GET
+            statuses: NOT_FOUND
+            backoff:
+              firstBackoff: 10ms
+              maxBackoff: 50ms
+              factor: 2
+              basedOnPreviousValue: false
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, gateway
+  endpoint:
+    gateway:
+      enabled: true
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    reactor.netty.http.client: DEBUG
