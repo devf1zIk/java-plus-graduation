@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.interaction.dto.ParticipationRequestDto;
 import ru.yandex.practicum.interaction.enums.ParticipationRequestStatus;
 import ru.yandex.practicum.request.service.RequestService;
-
 import java.util.List;
 
 @Slf4j
@@ -30,6 +29,13 @@ public class InternalRequestController {
             @RequestParam ParticipationRequestStatus status) {
         log.info("Getting all requests by eventIds: {} and Status: {}", eventIds, status);
         return ResponseEntity.ok(requestService.findAllByEventIdInAndStatus(eventIds, status));
+    }
+
+    @GetMapping("/byEventIdAndUserId")
+    public ResponseEntity<ParticipationRequestDto> getByEventIdAndUserId(@RequestParam Long eventId,
+                                                                         @RequestParam Long userId) {
+        log.info("Getting request by eventId: {} and userId: {}", eventId, userId);
+        return ResponseEntity.ok(requestService.findByEventIdAndUserId(eventId, userId));
     }
 
     @GetMapping("/count")

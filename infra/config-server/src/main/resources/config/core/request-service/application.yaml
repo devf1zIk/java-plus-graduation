@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:6546/request-db
-    username: stat
-    password: stat
+    url: jdbc:postgresql://localhost:5432/ewm-requests
+    username: postgres
+    password: password
     driver-class-name: org.postgresql.Driver
 
   jpa:

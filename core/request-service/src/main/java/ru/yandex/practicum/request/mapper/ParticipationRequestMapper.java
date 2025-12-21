@@ -2,7 +2,6 @@ package ru.yandex.practicum.request.mapper;
 
 import ru.yandex.practicum.interaction.dto.ParticipationRequestDto;
 import ru.yandex.practicum.request.model.ParticipationRequest;
-
 import java.util.List;
 
 public class ParticipationRequestMapper {

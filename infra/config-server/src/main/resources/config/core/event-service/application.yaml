@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:6542/event-db
-    username: stat
-    password: stat
+    url: jdbc:postgresql://localhost:5432/ewm-events
+    username: postgres
+    password: password
     driver-class-name: org.postgresql.Driver
 
   jpa:

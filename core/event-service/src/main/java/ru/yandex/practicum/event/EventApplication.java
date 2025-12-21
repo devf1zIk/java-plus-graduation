@@ -8,7 +8,10 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @EnableFeignClients(basePackages = "ru.yandex.practicum.interaction.client")
 @EnableDiscoveryClient
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {
+        "ru.yandex.practicum.event",
+        "ru.practicum.ewm.client.stats"
+})
 @ConfigurationPropertiesScan
 public class EventApplication {
     public static void main(String[] args) {

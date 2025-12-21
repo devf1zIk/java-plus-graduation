@@ -1,11 +1,11 @@
 package ru.yandex.practicum.event.service;
 
 import jakarta.servlet.http.HttpServletRequest;
+import ru.practicum.grpc.stats.messages.RecommendedEventProto;
 import ru.yandex.practicum.interaction.dto.*;
 import ru.yandex.practicum.interaction.dto.params.EventParamsAdmin;
 import ru.yandex.practicum.interaction.dto.params.EventParamsPublic;
 import ru.yandex.practicum.interaction.dto.params.UserParamsAdmin;
-
 import java.util.List;
 
 public interface EventService {
@@ -20,7 +20,7 @@ public interface EventService {
 
     List<EventShortDto> getPublicEvents(EventParamsPublic params, HttpServletRequest request);
 
-    EventFullDto getEventByIdAndLogHit(Long eventId, HttpServletRequest request);
+    EventFullDto getEventByIdAndLogHit(Long eventId, long userId);
 
     EventFullDto getEventForInternalUse(Long eventId);
 
@@ -32,4 +32,8 @@ public interface EventService {
                                                        EventRequestStatusUpdateRequest requestUpdate);
 
     List<ParticipationRequestDto> getAllParticipationRequestsByUserIdAndEventId(Long userId, Long eventId);
+
+    List<RecommendedEventProto> getRecommendationsForUser(long userId, int maxResults);
+
+    void sendLikeToCollector(long userId, long eventId);
 }

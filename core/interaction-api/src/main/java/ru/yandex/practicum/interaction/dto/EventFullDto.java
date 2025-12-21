@@ -3,7 +3,6 @@ package ru.yandex.practicum.interaction.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 import ru.yandex.practicum.interaction.enums.EventState;
-
 import java.time.LocalDateTime;
 
 @Getter
@@ -34,5 +33,5 @@ public class EventFullDto {
     private LocationDto location;
     private UserShortDto initiator;
     private long confirmedRequests;
-    private long views;
+    private double rating;
 }
