@@ -1,4 +1,4 @@
-package ru.yandex.practicum.event.controller;
+package ru.yandex.practicum.event.controller.privapi;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

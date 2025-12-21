@@ -1,4 +1,4 @@
-package ru.yandex.practicum.comment.controller;
+package ru.yandex.practicum.comment.controller.privapi;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

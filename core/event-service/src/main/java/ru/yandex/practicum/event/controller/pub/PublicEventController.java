@@ -1,4 +1,4 @@
-package ru.yandex.practicum.event.controller;
+package ru.yandex.practicum.event.controller.pub;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
