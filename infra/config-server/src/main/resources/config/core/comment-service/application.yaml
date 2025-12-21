@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:6545/comment-db
-    username: stat
-    password: stat
+    url: jdbc:postgresql://localhost:5432/ewm-comments
+    username: postgres
+    password: password
     driver-class-name: org.postgresql.Driver
 
   jpa:

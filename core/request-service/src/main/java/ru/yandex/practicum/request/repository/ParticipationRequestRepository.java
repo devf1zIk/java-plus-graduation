@@ -3,7 +3,6 @@ package ru.yandex.practicum.request.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import ru.yandex.practicum.interaction.enums.ParticipationRequestStatus;
 import ru.yandex.practicum.request.model.ParticipationRequest;
-
 import java.util.List;
 
 public interface ParticipationRequestRepository extends JpaRepository<ParticipationRequest, Long> {
@@ -15,6 +14,8 @@ public interface ParticipationRequestRepository extends JpaRepository<Participat
     List<ParticipationRequest> findAllByEventId(Long eventId);
 
     long countByEventIdAndStatus(Long eventId, ParticipationRequestStatus status);
+
+    ParticipationRequest findByEventIdAndRequesterId(long eventId, long userId);
 
     List<ParticipationRequest> findAllByEventIdInAndStatus(List<Long> eventIds, ParticipationRequestStatus status);
 }

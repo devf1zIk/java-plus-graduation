@@ -2,7 +2,6 @@ package ru.yandex.practicum.request.service;
 
 import ru.yandex.practicum.interaction.dto.ParticipationRequestDto;
 import ru.yandex.practicum.interaction.enums.ParticipationRequestStatus;
-
 import java.util.List;
 
 public interface RequestService {
@@ -19,4 +18,6 @@ public interface RequestService {
     Long countByEventIdAndStatus(Long eventId, ParticipationRequestStatus status);
 
     Integer updateAllRequests(List<ParticipationRequestDto> updatedRequests);
+
+    ParticipationRequestDto findByEventIdAndUserId(long eventId, long userId);
 }

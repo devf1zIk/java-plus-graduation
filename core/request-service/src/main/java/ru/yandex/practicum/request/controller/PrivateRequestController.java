@@ -6,7 +6,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.interaction.dto.ParticipationRequestDto;
 import ru.yandex.practicum.request.service.RequestService;
-
 import java.util.List;
 
 @Slf4j

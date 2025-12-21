@@ -1,0 +1,50 @@
+grpc:
+  server:
+    port: 0
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/ewm-stats
+    username: postgres
+    password: password
+    driver-class-name: org.postgresql.Driver
+
+  sql:
+    init:
+      mode: always
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+analyzer:
+  kafka:
+    bootstrap-servers: "localhost:9092"
+    consumers:
+      user-actions:
+        topic: "stats.user-actions.v1"
+        poll-timeout: 500
+        properties:
+          enable.auto.commit: false
+          group.id: "analyzer-user-actions"
+          key.deserializer: "org.apache.kafka.common.serialization.LongDeserializer"
+          value.deserializer: "deserializer.UserActionDeserializer"
+
+      events-similarity:
+        topic: "stats.events-similarity.v1"
+        poll-timeout: 500
+        properties:
+          enable.auto.commit: false
+          group.id: "analyzer-events-similarity"
+          key.deserializer: "org.apache.kafka.common.serialization.LongDeserializer"
+          value.deserializer: "deserializer.EventSimilarityDeserializer"

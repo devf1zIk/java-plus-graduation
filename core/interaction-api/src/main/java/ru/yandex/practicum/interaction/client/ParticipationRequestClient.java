@@ -1,6 +1,5 @@
 package ru.yandex.practicum.interaction.client;
 
-
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -10,7 +9,6 @@ import ru.yandex.practicum.interaction.config.FeignConfig;
 import ru.yandex.practicum.interaction.dto.ParticipationRequestDto;
 import ru.yandex.practicum.interaction.enums.ParticipationRequestStatus;
 import ru.yandex.practicum.interaction.fallback.ParticipationRequestFallback;
-
 import java.util.List;
 
 @FeignClient(name = "request-service",
@@ -34,4 +32,7 @@ public interface ParticipationRequestClient {
     @PutMapping
     Integer updateAllRequests(@RequestBody List<ParticipationRequestDto> updatedRequests);
 
+    @GetMapping("/byEventIdAndUserId")
+    ParticipationRequestDto getByEventIdAndUserId(@RequestParam Long eventId,
+                                                  @RequestParam Long userId);
 }

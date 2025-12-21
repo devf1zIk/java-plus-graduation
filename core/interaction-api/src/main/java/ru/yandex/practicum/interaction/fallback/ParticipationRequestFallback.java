@@ -38,4 +38,10 @@ public class ParticipationRequestFallback implements ParticipationRequestClient 
                 "Fallback triggered: update all requests failed. No action performed.");
         return -1;
     }
+    @Override
+    public ParticipationRequestDto getByEventIdAndUserId(Long eventId, Long userId) {
+        log.warn("[ParticipationRequestClient#getByEventIdAndUserId] " +
+                "Fallback triggered: get by event ID {} and user ID {} failed.", eventId, userId);
+        return null;
+    }
 }
